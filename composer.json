@@ -1,0 +1,26 @@
+{
+  "name": "Front/RediSearch",
+  "description": "CMS/Framework agnostic RediSearch client",
+  "keywords": ["redis", "redisearch"],
+  "homepage": "http://github.com/front/redisearch",
+  "license": "MIT",
+  "support": {
+      "issues": "https://github.com/front/redisearch/issues"
+  },
+  "authors": [
+      {
+          "name": "Foad Yousefi",
+          "email": "foadyousefi@gmail.com",
+          "homepage": "https://frontkom.no"
+      }
+  ],
+  "autoload": {
+      "psr-4": {
+          "FKRediSearch\\": "lib/"
+      }
+  },
+  "minimum-stability": "dev",
+  "require": {
+      "predis/predis": "^1.1"
+  }
+}
