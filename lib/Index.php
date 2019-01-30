@@ -78,7 +78,7 @@ class Index {
   * @param
   * @return object $this
   */
-  public function add($index_name = null, $id = 0, $score = 1, $indexing_options = null) {
+  public function add($index_name = null, $id = 0, $indexing_options = null, $score = 1) {
     if ( !isset( $index_name ) ) {
       return;
     }
