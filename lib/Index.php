@@ -2,9 +2,6 @@
 
 namespace FKRediSearch\RediSearch;
 
-use FKRediSearch\FKRediSearch;
-use FKRediSearch\RedisRaw\PredisAdapter;
-
 class Index {
 
 	/**
