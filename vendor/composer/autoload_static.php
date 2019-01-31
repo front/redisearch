@@ -29,6 +29,16 @@ class ComposerStaticInitfd524027e3158b3f967207bbbd1c5a01
     );
 
     public static $classMap = array (
+        'FKRediSearch\\RediSearch\\Document' => __DIR__ . '/../..' . '/lib/Document/Document.php',
+        'FKRediSearch\\RediSearch\\Fields\\AbstractField' => __DIR__ . '/../..' . '/lib/Fields/AbstractField.php',
+        'FKRediSearch\\RediSearch\\Fields\\FieldInterface' => __DIR__ . '/../..' . '/lib/Fields/FieldInterface.php',
+        'FKRediSearch\\RediSearch\\Fields\\GeoField' => __DIR__ . '/../..' . '/lib/Fields/GeoField.php',
+        'FKRediSearch\\RediSearch\\Fields\\GeoLocation' => __DIR__ . '/../..' . '/lib/Fields/GeoLocation.php',
+        'FKRediSearch\\RediSearch\\Fields\\Noindex' => __DIR__ . '/../..' . '/lib/Fields/Noindex.php',
+        'FKRediSearch\\RediSearch\\Fields\\NumericField' => __DIR__ . '/../..' . '/lib/Fields/NumericField.php',
+        'FKRediSearch\\RediSearch\\Fields\\Sortable' => __DIR__ . '/../..' . '/lib/Fields/Sortable.php',
+        'FKRediSearch\\RediSearch\\Fields\\TagField' => __DIR__ . '/../..' . '/lib/Fields/TagField.php',
+        'FKRediSearch\\RediSearch\\Fields\\TextField' => __DIR__ . '/../..' . '/lib/Fields/TextField.php',
         'FKRediSearch\\RediSearch\\Index' => __DIR__ . '/../..' . '/lib/Index.php',
         'FKRediSearch\\RediSearch\\Query' => __DIR__ . '/../..' . '/lib/Query/Query.php',
         'FKRediSearch\\RediSearch\\SearchResult' => __DIR__ . '/../..' . '/lib/Query/SearchResults.php',

@@ -6,6 +6,16 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'FKRediSearch\\RediSearch\\Document' => $baseDir . '/lib/Document/Document.php',
+    'FKRediSearch\\RediSearch\\Fields\\AbstractField' => $baseDir . '/lib/Fields/AbstractField.php',
+    'FKRediSearch\\RediSearch\\Fields\\FieldInterface' => $baseDir . '/lib/Fields/FieldInterface.php',
+    'FKRediSearch\\RediSearch\\Fields\\GeoField' => $baseDir . '/lib/Fields/GeoField.php',
+    'FKRediSearch\\RediSearch\\Fields\\GeoLocation' => $baseDir . '/lib/Fields/GeoLocation.php',
+    'FKRediSearch\\RediSearch\\Fields\\Noindex' => $baseDir . '/lib/Fields/Noindex.php',
+    'FKRediSearch\\RediSearch\\Fields\\NumericField' => $baseDir . '/lib/Fields/NumericField.php',
+    'FKRediSearch\\RediSearch\\Fields\\Sortable' => $baseDir . '/lib/Fields/Sortable.php',
+    'FKRediSearch\\RediSearch\\Fields\\TagField' => $baseDir . '/lib/Fields/TagField.php',
+    'FKRediSearch\\RediSearch\\Fields\\TextField' => $baseDir . '/lib/Fields/TextField.php',
     'FKRediSearch\\RediSearch\\Index' => $baseDir . '/lib/Index.php',
     'FKRediSearch\\RediSearch\\Query' => $baseDir . '/lib/Query/Query.php',
     'FKRediSearch\\RediSearch\\SearchResult' => $baseDir . '/lib/Query/SearchResults.php',
