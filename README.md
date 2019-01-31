@@ -101,6 +101,13 @@ $document->setFields(
 $index->add( $document ); // Add document to the index (in other term, index the document)
 ```
 
+#### Persistence
+After indexing documents, index can be written to the disk and in case of network issues, you won't miss your index.
+
+```php
+$index->writeToDisk();
+```
+
 #### Search
 And here is how to search:
 ```php
