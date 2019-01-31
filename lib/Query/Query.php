@@ -27,7 +27,7 @@ class Query {
   protected $client;
   private $indexName;
 
-  public function __construct($client, $indexName) {
+  public function __construct( $client, $indexName ) {
     $this->client = $client;
     $this->indexName = $indexName;
   }
@@ -44,14 +44,14 @@ class Query {
     return $this;
   }
 
-  public function summarize( $fields, $fragmentCount = 3, $fragmentLength = 50, $separator = '...') {
+  public function summarize( $fields, $fragmentCount = 3, $fragmentLength = 50, $separator = '...' ) {
     $count = empty($fields) ? 0 : count($fields);
     $field = implode(' ', $fields);
     $this->summarize = "SUMMARIZE FIELDS $count $field FRAGS $fragmentCount LEN $fragmentLength SEPARATOR $separator";
     return $this;
   }
 
-  public function highlight($fields, $openTag = '<strong>', $closeTag = '</strong>') {
+  public function highlight( $fields, $openTag = '<strong>', $closeTag = '</strong>' ) {
     $count = empty($fields) ? 0 : count($fields);
     $field = implode(' ', $fields);
     $this->highlight = "HIGHLIGHT FIELDS $count $field TAGS $openTag $closeTag";
@@ -68,17 +68,17 @@ class Query {
     return $this;
   }
 
-  public function limit( $offset, $pageSize = 10) {
+  public function limit( $offset, $pageSize = 10 ) {
     $this->limit = "LIMIT $offset $pageSize";
     return $this;
   }
 
-  public function inFields( $number, $fields) {
+  public function inFields( $number, $fields ) {
     $this->inFields = "INFIELDS $number " . implode(' ', $fields);
     return $this;
   }
 
-  public function inKeys( $number, $keys) {
+  public function inKeys( $number, $keys ) {
     $this->inKeys = "INKEYS $number " . implode(' ', $keys);
     return $this;
   }
@@ -114,7 +114,7 @@ class Query {
     return $this;
   }
 
-  public function geoFilter( $fieldName, $longitude, $latitude, $radius, $distanceUnit = 'km') {
+  public function geoFilter( $fieldName, $longitude, $latitude, $radius, $distanceUnit = 'km' ) {
     $geo_units = array( 'm', 'km', 'mi', 'ft' );
     if ( !in_array($distanceUnit, $geo_units) ) {
       throw new InvalidArgumentException($distanceUnit);
@@ -140,33 +140,27 @@ class Query {
   }
 
   public function searchQueryArgs( $query ) {
-      $queryParts = array_merge([$query], $this->numericFilters, $this->geoFilters);
-      $queryWithFilters = "'" . implode(' ', $queryParts) . "'";
+      $queryParts = array_merge( [$query], $this->numericFilters, $this->geoFilters );
+      $queryWithFilters = "'" . implode( ' ', $queryParts ) . "'";
       return array_filter(
           array_merge(
-              trim($queryWithFilters) === '' ? [$this->indexName] : [$this->indexName, $queryWithFilters],
-              explode(' ', $this->limit),
-              explode(' ', $this->slop),
-              [
-                  $this->verbatim,
-                  $this->withScores,
-                  $this->withPayloads,
-                  $this->noStopWords,
-                  $this->noContent,
-              ],
-              explode(' ', $this->inFields),
-              explode(' ', $this->inKeys),
-              explode(' ', $this->return),
-              explode(' ', $this->summarize),
-              explode(' ', $this->highlight),
-              explode(' ', $this->sortBy),
-              explode(' ', $this->scorer),
-              explode(' ', $this->language),
-              explode(' ', $this->expander),
-              explode(' ', $this->payload)
+              trim($queryWithFilters) === '' ? array( $this->indexName ) : array( $this->indexName, $queryWithFilters ),
+              explode( ' ', $this->limit ),
+              explode( ' ', $this->slop ),
+              array( $this->verbatim, $this->withScores, $this->withPayloads, $this->noStopWords, $this->noContent),
+              explode( ' ', $this->inFields),
+              explode( ' ', $this->inKeys ),
+              explode( ' ', $this->return ),
+              explode( ' ', $this->summarize ),
+              explode( ' ', $this->highlight ),
+              explode( ' ', $this->sortBy ),
+              explode( ' ', $this->scorer ),
+              explode( ' ', $this->language ),
+              explode( ' ', $this->expander ),
+              explode( ' ', $this->payload )
           ),
-          function ($item) {
-            return !is_null($item) && $item !== '';
+          function ( $item ) {
+            return !is_null( $item ) && $item !== '';
           }
       );
   }
