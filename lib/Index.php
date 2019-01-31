@@ -228,11 +228,12 @@ class Index {
   }
 
   /**
-   * @param DocumentInterface $document
-   * @param bool $isFromHash
-   * @return mixed
-   */
-  public function _add( $document ) {
+  * Add documents to the index.
+  * @since    0.1.0
+  * @param
+  * @return object $this
+  */
+  public function add( $document ) {
     $properties = $document->getDefinition();
     array_unshift( $properties, $this->getIndexName() );
 
@@ -278,40 +279,9 @@ class Index {
    * @param string $name
    * @return IndexInterface
    */
-  public function addGeoField( $name, $noindex = false) {
+  public function addGeoField( $name, $noindex = false ) {
       $this->$name = (new GeoField($name))->setNoindex($noindex);
       return $this;
-  }
-
-  /**
-  * Add documents to the index.
-  * @since    0.1.0
-  * @param
-  * @return object $this
-  */
-  public function add( $fields = array(), $id = 0, $score = 1.0, $language = 'english') {
-    if ( empty( $fields ) ) {
-      return;
-    }
-
-    if ( $id == 0 ) {
-      $id = uniqid( true );
-    }
-
-    $indexName = $this->getIndexName();
-
-    $command = array_merge( array( $indexName, $id, $score, 'LANGUAGE', $indexing_options['language'] ) );
-
-    $extra_params = isset( $indexing_options['extra_params'] ) ? $indexing_options['extra_params'] : array();
-
-    // If any extra options passed, merge it to $command
-    if ( isset( $extra_params ) && !empty( $extra_params ) ) {
-      $command = array_merge( $command, $extra_params );
-    }
-
-    $command = array_merge( $command, array( 'FIELDS' ), $indexing_options['fields'] );
-
-    return $this->client->rawCommand('FT.ADD', $command);
   }
 
   /**
