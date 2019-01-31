@@ -7,7 +7,8 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'FKRediSearch\\RediSearch\\Index' => $baseDir . '/lib/Index.php',
-    'FKRediSearch\\RediSearch\\Search' => $baseDir . '/lib/Search.php',
+    'FKRediSearch\\RediSearch\\Query' => $baseDir . '/lib/Query/Query.php',
+    'FKRediSearch\\RediSearch\\SearchResult' => $baseDir . '/lib/Query/SearchResults.php',
     'FKRediSearch\\RediSearch\\Setup' => $baseDir . '/lib/Setup.php',
     'FKRediSearch\\RedisRaw\\AbstractRedisRawClient' => $baseDir . '/lib/RedisRaw/AbstractRedisRawClient.php',
     'FKRediSearch\\RedisRaw\\PredisAdapter' => $baseDir . '/lib/RedisRaw/PredisAdapter.php',

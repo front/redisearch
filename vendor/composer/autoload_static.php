@@ -30,7 +30,8 @@ class ComposerStaticInitfd524027e3158b3f967207bbbd1c5a01
 
     public static $classMap = array (
         'FKRediSearch\\RediSearch\\Index' => __DIR__ . '/../..' . '/lib/Index.php',
-        'FKRediSearch\\RediSearch\\Search' => __DIR__ . '/../..' . '/lib/Search.php',
+        'FKRediSearch\\RediSearch\\Query' => __DIR__ . '/../..' . '/lib/Query/Query.php',
+        'FKRediSearch\\RediSearch\\SearchResult' => __DIR__ . '/../..' . '/lib/Query/SearchResults.php',
         'FKRediSearch\\RediSearch\\Setup' => __DIR__ . '/../..' . '/lib/Setup.php',
         'FKRediSearch\\RedisRaw\\AbstractRedisRawClient' => __DIR__ . '/../..' . '/lib/RedisRaw/AbstractRedisRawClient.php',
         'FKRediSearch\\RedisRaw\\PredisAdapter' => __DIR__ . '/../..' . '/lib/RedisRaw/PredisAdapter.php',
