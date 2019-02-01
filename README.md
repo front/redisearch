@@ -10,8 +10,11 @@ Then add this package to your project via `composer require` or just downloading
 For all kind of operations, first step is to connect to redis server:
 
 ```php
-$client = \FKRediSearch\RediSearch\Setup::connect();
+$client = \FKRediSearch\RediSearch\Setup::connect( $server, $port, $password, 0 );
 ```
+
+Default values are: `$server = '127.0.0.1'`, `$port = 6379`, `$password = null`, `$database = 0`
+
 
 #### Field types
 Redisearch supports some field types:
@@ -141,6 +144,8 @@ $results->getDocuments(); // Returns search results object or array
 **Notes**:
 * NUMBERIC, TAG and GEO fields only can be used as filter and matching not working on them. 
 
-
-
-
+**Todos**:
+* Add support for suggestion (auto-complete).
+* Add support for TAGVALS (This will return all existing TAGs indexed within a specific field. It is extremely usefull for facet search fileters).
+* Add comment to all methods.
+* Add support for Spell Check (This is useful to show *Do you mean: ...* feature like google and other search engines does).
