@@ -2,13 +2,13 @@
 
 namespace FKRediSearch;
 
-use FKRediSearch\RediSearch\Fields\AbstractField;
-use FKRediSearch\RediSearch\Fields\FieldInterface;
-use FKRediSearch\RediSearch\Fields\GeoField;
-use FKRediSearch\RediSearch\Fields\NumericField;
-use FKRediSearch\RediSearch\Fields\TextField;
-use FKRediSearch\RediSearch\Fields\TagField;
-use FKRediSearch\RediSearch\Document\Document;
+use FKRediSearch\Fields\AbstractField;
+use FKRediSearch\Fields\FieldInterface;
+use FKRediSearch\Fields\GeoField;
+use FKRediSearch\Fields\NumericField;
+use FKRediSearch\Fields\TextField;
+use FKRediSearch\Fields\TagField;
+use FKRediSearch\Document\Document;
 
 class Index {
 

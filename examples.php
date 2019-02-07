@@ -4,19 +4,19 @@
  */
 require_once  __DIR__ . '/vendor/autoload.php';
 
-use FKRediSearch\RediSearch\Index;
-use FKRediSearch\RediSearch\Search;
-use FKRediSearch\RediSearch\Query;
-use FKRediSearch\RediSearch\Document;
-use FKRediSearch\RediSearch\Fields;
-use FKRediSearch\RediSearch\Fields\TextField;
-use FKRediSearch\RediSearch\Fields\NumericField;
-use FKRediSearch\RediSearch\Fields\TagField;
-use FKRediSearch\RediSearch\Fields\Geo;
-use FKRediSearch\RediSearch\Fields\GeoLocation;
+use FKRediSearch\Index;
+use FKRediSearch\Search;
+use FKRediSearch\Query;
+use FKRediSearch\Document;
+use FKRediSearch\Fields;
+use FKRediSearch\Fields\TextField;
+use FKRediSearch\Fields\NumericField;
+use FKRediSearch\Fields\TagField;
+use FKRediSearch\Fields\Geo;
+use FKRediSearch\Fields\GeoLocation;
 
 
-$client = \FKRediSearch\RediSearch\Setup::connect();
+$client = \FKRediSearch\Setup::connect();
 
 $index = new Index( $client );
 $index->setIndexName('test');
