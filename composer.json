@@ -1,5 +1,5 @@
 {
-  "name": "Front/RediSearch",
+  "name": "front/redisearch",
   "description": "CMS/Framework agnostic RediSearch client",
   "keywords": ["redis", "redisearch"],
   "homepage": "http://github.com/front/redisearch",
