@@ -1,6 +1,6 @@
 <?php
 
-namespace FKRediSearch\RediSearch;
+namespace FKRediSearch;
 
 use FKRediSearch\RediSearch\Fields\AbstractField;
 use FKRediSearch\RediSearch\Fields\FieldInterface;

@@ -1,21 +1,16 @@
 <?php
 
-namespace FKRediSearch\RediSearch\Fields;
+namespace FKRediSearch\Fields;
 
-class NumericField extends AbstractField {
-  use Sortable;
+class GeoField extends AbstractField {
   use Noindex;
-
+  
   public function getType() {
-    return 'NUMERIC';
+    return 'GEO';
   }
-
+  
   public function getDefinition() {
     $properties = parent::getDefinition();
-    
-    if ( $this->isSortable() ) {
-      $properties[] = 'SORTABLE';
-    }
     
     if ( $this->isNoindex() ) {
       $properties[] = 'NOINDEX';

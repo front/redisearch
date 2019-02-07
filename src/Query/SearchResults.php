@@ -1,5 +1,5 @@
 <?php
-namespace FKRediSearch\RediSearch;
+namespace FKRediSearch\Query;
 
 class SearchResult {
   protected $count;

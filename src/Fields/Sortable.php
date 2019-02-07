@@ -1,6 +1,6 @@
 <?php
 
-namespace FKRediSearch\RediSearch\Fields;
+namespace FKRediSearch\Fields;
 
 trait Sortable {
   protected $isSortable = false;

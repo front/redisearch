@@ -1,6 +1,6 @@
 <?php
 
-namespace FKRediSearch\RediSearch\Fields;
+namespace FKRediSearch\Fields;
 
 class TagField extends AbstractField {
   use Sortable;

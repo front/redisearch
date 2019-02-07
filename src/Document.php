@@ -1,6 +1,6 @@
 <?php
 
-namespace FKRediSearch\RediSearch;
+namespace FKRediSearch;
 
 class Document {
   protected $id;

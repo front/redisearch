@@ -1,6 +1,6 @@
 <?php
 
-namespace FKRediSearch\RediSearch\Fields;
+namespace FKRediSearch\Fields;
 
 abstract class AbstractField implements FieldInterface {
   protected $name;

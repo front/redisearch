@@ -1,6 +1,6 @@
 <?php
 
-namespace FKRediSearch\RediSearch;
+namespace FKRediSearch\Query;
 
 use InvalidArgumentException;
 

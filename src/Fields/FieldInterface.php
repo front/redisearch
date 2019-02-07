@@ -1,6 +1,6 @@
 <?php
 
-namespace FKRediSearch\RediSearch\Fields;
+namespace FKRediSearch\Fields;
 
 interface FieldInterface {
   public function getDefinition();

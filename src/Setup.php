@@ -1,16 +1,21 @@
 <?php
 
-namespace FKRediSearch\RediSearch;
+namespace FKRediSearch;
 
 use FKRediSearch\RedisRaw\PredisAdapter;
 
 class Setup {
+
   /**
-  * Create connection to redis server.
-  * @since    0.1.0
-  * @param
-  * @return
-  */
+   * Create connection to the Redis Server.
+   *
+   * @param string $server
+   * @param int    $port
+   * @param null   $password
+   * @param int    $database
+   *
+   * @return \FKRediSearch\RedisRaw\RedisRawClientInterface
+   */
   public static function connect( $server = '127.0.0.1', $port = 6379, $password = null, $database = 0 ) {
     // Connect to server
     $client = ( new PredisAdapter() )->connect( $server, $port, $database, $password );

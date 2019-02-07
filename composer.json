@@ -16,7 +16,7 @@
   ],
   "autoload": {
       "psr-4": {
-          "FKRediSearch\\": "lib/"
+          "FKRediSearch\\": "src/"
       }
   },
   "minimum-stability": "dev",
