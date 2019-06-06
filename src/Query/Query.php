@@ -5,6 +5,7 @@ namespace FKRediSearch\Query;
 use InvalidArgumentException;
 
 class Query {
+
   protected $return = '';
   protected $summarize = '';
   protected $highlight = '';
@@ -24,6 +25,10 @@ class Query {
   protected $sortBy = '';
   protected $scorer = '';
   protected $language = '';
+  protected $groupBy = '';
+  protected $reduce = '';
+  protected $apply = '';
+  protected $filter = '';
   protected $client;
   private $indexName;
 
@@ -139,6 +144,90 @@ class Query {
     return $this;
   }
 
+  /**
+   * Apply a grouping to aggregation
+   * @arg array $group an array of grouping field names
+   * @return object this object
+   */
+  public function groupBy( array $group ) {
+    $group = array_map(function($n) { return "@$n"; }, $group);
+    $group = implode(' ', array_merge([count($group)], $group));
+    $this->groupBy = "GROUPBY $group";
+    return $this;
+  }
+
+  /**
+   * Apply a reducer function on grouping aggregation. Has no effect if no grouping was used
+   * @arg string $alias reducer's alias
+   * @arg string $type_readable a readable name of function, e.g. "first value", "tolist"
+   * @arg array $arguments an array of arguments for reducer function
+   * @return object this object
+   */
+  public function reduce( array $reducers ) {
+    $valid_reducers = [
+      'COUNT',   'COUNT_DISTINCT',  'COUNT_DISTINCTISH',
+      'SUM',     'MIN',             'MAX',
+      'AVG',     'STDDEV',          'QUANTILE',
+      'TOLIST',  'FIRST_VALUE',     'RANDOM_SAMPLE'
+    ];
+
+    $reducers = [];
+    foreach ( $reducers as $alias => $reducer_data ) {
+      $type_readable = array_shift($reducer_data);
+      $type = mb_strtoupper(str_replace(' ', '_', $type_readable));
+
+      // name supplied must be redis-compatible
+      if ( in_array($valid_reducers, $type) ) {
+        $reducer_data = array_map(function($a) { return "@$a"; }, $reducer_data);
+        array_unshift($reducer_data, count($reducer_data));
+        $reducer = "$type " . implode(' ', $reducer_data);
+        // only non-numeric keys are aliases
+        if (!preg_match('/^[0-9]+^/', $alias)) {
+          $reducer .= " AS $alias";
+        }
+        $reducers[] = $reducer;
+      } else {
+        throw new BadMethodCallException("Unknown reducer: $type_readable");
+      }
+    }
+
+    // apply joined reducers to object's field
+    $this->reduce = implode(' ', $reducers);
+    return $this;
+  }
+
+  public function apply( array $apply ) {
+    foreach ( $apply as $alias => $name ) {
+      $apply[$alias] = "APPLY $name AS $alias";
+    }
+    $this->apply = implode(' ', $apply);
+    return $this;
+  }
+
+  /**
+   * Add filter to aggregation.
+   * @arg array $exp an array of filtering arguments. Examples:
+   * [['a', '>=' 1]] - filter a to be greater than 1
+   * [['a', '==', 5], '&&', ['b', '!']] - filter a to be equal 5 and b to be false
+   * @return object this object
+   */
+  public function filter( array $expr ) {
+    foreach ( $expr as $i => $element ) {
+      if ( is_array($element) ) {
+        $element[0] = '@' . $element[0];
+        if ( count($element) == 3 ) {
+          $tmpel = implode(' ', $element);
+        } else {
+          $tmpel = implode('', array_reverse($element));
+        }
+        $expr[$i] = $tmpel;
+      }
+    }
+    $expr_string = implode(' ', $expr);
+    $this->filter = "FILTER \"$expr_string\"";
+    return $this;
+  }
+
   public function searchQueryArgs( $query ) {
       $queryParts = array_merge( [$query], $this->numericFilters, $this->geoFilters );
       $queryWithFilters = "'" . implode( ' ', $queryParts ) . "'";
@@ -165,6 +254,33 @@ class Query {
       );
   }
 
+  public function aggregateQueryArgs( $query ) {
+    $queryParts = array_merge( [$query], $this->numericFilters, $this->geoFilters );
+    $queryWithFilters = "'" . implode( ' ', $queryParts ) . "'";
+
+    // join together groupBy and reduce - they need one another
+    if ( strlen($this->groupBy) > 0 && strlen($this->reduce) > 0 ) {
+      $groupBy = implode(' ', [$this->groupBy, $this->reduce]);
+    } else {
+      $groupBy = NULL;
+    }
+
+    return array_filter(
+        array_merge(
+            trim($queryWithFilters) === '' ? array( $this->indexName ) : array( $this->indexName, $queryWithFilters ),
+            explode( ' ', $this->limit ),
+            array( $this->verbatim, $this->withScores, $this->withPayloads, $this->noStopWords, $this->noContent),
+            explode( ' ', $this->sortBy ),
+            explode( ' ', $this->filter ),
+            explode( ' ', $groupBy ),
+            explode( ' ', $this->apply )
+        ),
+        function ( $item ) {
+          return !is_null( $item ) && $item !== '';
+        }
+    );
+  }
+
   public function search( $query = '', $documentsAsArray = false ) {
     $rawResult = $this->client->rawCommand( 'FT.SEARCH', $this->searchQueryArgs( $query ) );
 
@@ -180,5 +296,29 @@ class Query {
   public function explain( $query ) {
     return $this->client->rawCommand( 'FT.EXPLAIN', $this->searchQueryArgs( $query ) );
   }
-  
+
+  /**
+   * Return all possible values for given field
+   * @arg $fieldName string field's name in index
+   * @return array tags list
+   */
+  public function tagVals( $fieldName ) {
+    return $this->client->rawCommand( 'FT.TAGVALS', [$this->indexName, $fieldName]);
+  }
+
+  /**
+   * Apply aggregation on redis query
+   * @arg string $query redis query to be run
+   * @arg boolean $documentAsArray
+   * @return SearchResult the result of aggregation
+   */
+  public function aggregate( $query, $documentsAsArray = false ) {
+    $rawResult = $this->client->rawCommand( 'FT.AGGREGATE', $this->aggregateQueryArgs( $query ) );
+
+    return $rawResult ? SearchResult::searchResult(
+          $rawResult,
+          $documentsAsArray
+      ) : new SearchResult(0, []);
+  }
+
 }
