@@ -24,8 +24,9 @@ class SearchResult {
       return false;
     }
 
-    if ( count( $rawRediSearchResult ) === 1 ) {
-      return new SearchResult( 0, [] );
+    $count = array_shift( $rawRediSearchResult );
+    if ( count( $rawRediSearchResult ) === 0 ) {
+      return new SearchResult( $count, [] );
     }
 
     if ( $withScores ) {
@@ -36,7 +37,6 @@ class SearchResult {
       $docWidth++;
     }
 
-    $count = array_shift( $rawRediSearchResult );
     $documents = [];
 
     for ($i = 0; $i < count( $rawRediSearchResult ); $i += $docWidth ) {
