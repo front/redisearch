@@ -3,6 +3,7 @@
 namespace FKRediSearch\Query;
 
 use InvalidArgumentException;
+use FKRediSearch\Query\QueryBuilder;
 
 class Query {
 
@@ -234,33 +235,39 @@ class Query {
   }
 
   public function searchQueryArgs( $query ) {
-      $queryParts = array_merge( [$query], $this->numericFilters, $this->geoFilters );
-      $queryWithFilters = "'" . implode( ' ', $queryParts ) . "'";
-      return array_filter(
-          array_merge(
-              trim($queryWithFilters) === '' ? array( $this->indexName ) : array( $this->indexName, $queryWithFilters ),
-              explode( ' ', $this->limit ),
-              explode( ' ', $this->slop ),
-              array( $this->verbatim, $this->withScores, $this->withPayloads, $this->noStopWords, $this->noContent),
-              explode( ' ', $this->inFields),
-              explode( ' ', $this->inKeys ),
-              explode( ' ', $this->return ),
-              explode( ' ', $this->summarize ),
-              explode( ' ', $this->highlight ),
-              explode( ' ', $this->sortBy ),
-              explode( ' ', $this->scorer ),
-              explode( ' ', $this->language ),
-              explode( ' ', $this->expander ),
-              explode( ' ', $this->payload )
-          ),
-          function ( $item ) {
-            return !is_null( $item ) && $item !== '';
-          }
-      );
+    if ($query instanceof QueryBuilder) {
+      $query = $query->buildRedisearchQuery();
+    }
+    $queryParts = array_merge( (array) $query, $this->numericFilters, $this->geoFilters );
+    $queryWithFilters = "'" . implode( ' ', $queryParts ) . "'";
+    return array_filter(
+        array_merge(
+            trim($queryWithFilters) === '' ? array( $this->indexName ) : array( $this->indexName, $queryWithFilters ),
+            explode( ' ', $this->limit ),
+            explode( ' ', $this->slop ),
+            array( $this->verbatim, $this->withScores, $this->withPayloads, $this->noStopWords, $this->noContent),
+            explode( ' ', $this->inFields),
+            explode( ' ', $this->inKeys ),
+            explode( ' ', $this->return ),
+            explode( ' ', $this->summarize ),
+            explode( ' ', $this->highlight ),
+            explode( ' ', $this->sortBy ),
+            explode( ' ', $this->scorer ),
+            explode( ' ', $this->language ),
+            explode( ' ', $this->expander ),
+            explode( ' ', $this->payload )
+        ),
+        function ( $item ) {
+          return !is_null( $item ) && $item !== '';
+        }
+    );
   }
 
   public function aggregateQueryArgs( $query ) {
-    $queryParts = array_merge( [$query], $this->numericFilters, $this->geoFilters );
+    if ($query instanceof QueryBuilder) {
+      $query = $query->buildRedisearchQuery();
+    }
+    $queryParts = array_merge( (array) $query, $this->numericFilters, $this->geoFilters );
     $queryWithFilters = "'" . implode( ' ', $queryParts ) . "'";
 
     // join together groupBy and reduce - they need one another
