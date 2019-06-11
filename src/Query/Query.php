@@ -176,13 +176,13 @@ class Query {
       'TOLIST',  'FIRST_VALUE',     'RANDOM_SAMPLE'
     ];
 
-    $reducers = [];
+    $reducers_parsed = [];
     foreach ( $reducers as $alias => $reducer_data ) {
       $type_readable = array_shift($reducer_data);
       $type = mb_strtoupper(str_replace(' ', '_', $type_readable));
 
       // name supplied must be redis-compatible
-      if ( in_array($valid_reducers, $type) ) {
+      if ( in_array($type, $valid_reducers) ) {
         $reducer_data = array_map(function($a) { return "@$a"; }, $reducer_data);
         array_unshift($reducer_data, count($reducer_data));
         $reducer = "$type " . implode(' ', $reducer_data);
@@ -190,14 +190,14 @@ class Query {
         if (!preg_match('/^[0-9]+^/', $alias)) {
           $reducer .= " AS $alias";
         }
-        $reducers[] = $reducer;
+        $reducers_parsed[] = $reducer;
       } else {
         throw new BadMethodCallException("Unknown reducer: $type_readable");
       }
     }
 
     // apply joined reducers to object's field
-    $this->reduce = implode(' ', $reducers);
+    $this->reduce = 'REDUCE ' . implode(' ', $reducers_parsed);
     return $this;
   }
 
