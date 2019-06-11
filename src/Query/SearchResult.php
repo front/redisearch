@@ -18,57 +18,55 @@ class SearchResult {
     return $this->documents;
   }
 
-  public static function searchResult( $rawRediSearchResult, $documentsAsArray, $withScores = false, $withPayloads = false, $noContent = false ) {
-    $docWidth = $noContent ? 1 : 2;
+  public static function searchResult( $rawRediSearchResult, $documentsAsArray, $withIds = true, $withScores = false, $withPayloads = false ) {
     if ( !$rawRediSearchResult ) {
       return false;
     }
 
+    // return count if there's no body
     $count = array_shift( $rawRediSearchResult );
     if ( count( $rawRediSearchResult ) === 0 ) {
       return new SearchResult( $count, [] );
     }
 
-    if ( $withScores ) {
-      $docWidth++;
+    // calculate width of each document
+    $results_count = count($rawRediSearchResult);
+    $docWidth = count($rawRediSearchResult) / $count;
+    if ( floor($docWidth) != $docWidth ) {
+      throw new UnexpectedValueException("Malformed redis result");
     }
-    
-    if ( $withPayloads ) {
-      $docWidth++;
+
+    // get data from redisearch response in friendlier format
+    $rows = [];
+    for ($i = 0; $i < $results_count; ++$i) {
+      $rows[] = array_slice($rawRediSearchResult, $i, $docWidth);
     }
 
     $documents = [];
+    foreach ($rows as $row_data) {
+      $document = [];
+      $document['id'] = $withIds ? array_shift($row_data) : NULL;
+      $document['score'] = $withScores ? array_shift($row_data) : NULL;
+      $document['payload'] = $withPayloads ? array_shift($row_data) : NULL;
 
-    for ($i = 0; $i < count( $rawRediSearchResult ); $i += $docWidth ) {
-      $document = $documentsAsArray ? [] : new \stdClass();
-      $documentsAsArray ?
-        $document['id'] = $rawRediSearchResult[$i] :
-        $document->id = $rawRediSearchResult[$i];
-
-      if ( $withScores ) {
-        $documentsAsArray ? $document['score'] = $rawRediSearchResult[ $i + 1 ] : $document->score = $rawRediSearchResult[ $i + 1 ];
-      }
-      
-      if ($withPayloads) {
-            $j = $withScores ? 2 : 1;
-              $documentsAsArray ?
-                  $document['payload'] = $rawRediSearchResult[$i+$j] :
-                  $document->payload = $rawRediSearchResult[$i+$j];
-      }
-      
-      if (!$noContent) {
-        $fields = $rawRediSearchResult[$i + ($docWidth - 1)];
-        
-        if (is_array($fields)) {
-          for ($j = 0; $j < count($fields); $j += 2) {
-            $documentsAsArray ? $document[$fields[$j]] = $fields[$j + 1] : $document->{$fields[$j]} = $fields[$j + 1];
-          }
+      // Add fields to document
+      if ( count($row_data) > 0 && is_array($row_data[0]) ) {
+        $fields = $row_data[0];
+        for ($i = 0; $i < count($fields); $i += 2) {
+          $document[$fields[$i]] = $fields[$i + 1];
         }
       }
 
       $documents[] = $document;
     }
-      
+
+    // Transform result into object if needed
+    if (!$documentsAsArray) {
+      foreach ($documents as $i => $doc) {
+        $documents[$i] = (object) $doc;
+      }
+    }
+
     return new SearchResult($count, $documents);
   }
 }

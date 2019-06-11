@@ -292,9 +292,9 @@ class Query {
     return $rawResult ? SearchResult::searchResult(
           $rawResult,
           $documentsAsArray,
+          true,
           $this->withScores !== '',
-          $this->withPayloads !== '',
-          $this->noContent !== ''
+          $this->withPayloads !== ''
       ) : new SearchResult(0, []);
   }
 
@@ -322,7 +322,8 @@ class Query {
 
     return $rawResult ? SearchResult::searchResult(
           $rawResult,
-          $documentsAsArray
+          $documentsAsArray,
+          false
       ) : new SearchResult(0, []);
   }
 
