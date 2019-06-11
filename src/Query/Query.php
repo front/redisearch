@@ -212,7 +212,7 @@ class Query {
   /**
    * Add filter to aggregation.
    * @arg array $exp an array of filtering arguments. Examples:
-   * [['a', '>=' 1]] - filter a to be greater than 1
+   * [['a', '>=', 1]] - filter a to be greater than 1
    * [['a', '==', 5], '&&', ['b', '!']] - filter a to be equal 5 and b to be false
    * @return object this object
    */
