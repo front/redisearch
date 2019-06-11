@@ -113,6 +113,11 @@ class Query {
     return $this;
   }
 
+  public function withSchema() {
+    $this->withSchema = 'WITHSCHEMA';
+    return $this;
+  }
+
   public function numericFilter( $fieldName, $min, $max = null ) {
     $max = $max ?? '+inf';
     $this->numericFilters[] = "@$fieldName:[$min $max]";
@@ -269,7 +274,7 @@ class Query {
         array_merge(
             trim($queryWithFilters) === '' ? array( $this->indexName ) : array( $this->indexName, $queryWithFilters ),
             explode( ' ', $this->limit ),
-            array( $this->verbatim, $this->withScores, $this->withPayloads, $this->noStopWords, $this->noContent),
+            array( $this->verbatim, $this->withSchema ),
             explode( ' ', $this->sortBy ),
             explode( ' ', $this->filter ),
             explode( ' ', $groupBy ),
