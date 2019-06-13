@@ -40,12 +40,12 @@ class QueryBuilder {
   /**
    * @var boolean should string be searched using prefix matching
    */
-  protected $partialSearch;
+  protected $prefixMatching;
 
   /**
    * @var integer should string be searched using fuzzy matching
    */
-  protected $fuzzySearch;
+  protected $fuzzyMatching;
 
   /**
    * Transforms conjunction operator into redisearch equivalent
@@ -79,11 +79,11 @@ class QueryBuilder {
     foreach ($values as $i => $value) {
       $tmp = [];
 
-      if ($this->partialSearch) {
+      if ($this->prefixMatching) {
         $tmp[] = "$value*";
       }
-      elseif ($this->fuzzySearch && $this->fuzzySearch >= 1 && $this->fuzzySearch <= 3) {
-        $fuzzy_border = str_repeat('%', $this->fuzzySearch);
+      elseif ($this->fuzzyMatching && $this->fuzzyMatching >= 1 && $this->fuzzyMatching <= 3) {
+        $fuzzy_border = str_repeat('%', $this->fuzzyMatching);
         $tmp[] = "$fuzzy_border$value$fuzzy_border";
       }
 
@@ -119,15 +119,15 @@ class QueryBuilder {
    * - conjunction
    * - allOnEmpty
    * - tokenize
-   * - partialSearch
-   * - fuzzySearch
+   * - prefixMatching
+   * - fuzzyMatching
    */
   public function __construct($params) {
     $this->conjunction = $params['conjunction'] ?? 'AND';
     $this->allOnEmpty = $params['allOnEmpty'] ?? TRUE;
     $this->tokenize = $params['tokenize'] ?? FALSE;
-    $this->partialSearch = $params['partialSearch'] ?? FALSE;
-    $this->fuzzySearch = $params['fuzzySearch'] ?? FALSE;
+    $this->prefixMatching = $params['prefixMatching'] ?? FALSE;
+    $this->fuzzyMatching = $params['fuzzyMatching'] ?? FALSE;
   }
 
   /**
