@@ -61,6 +61,14 @@ class QueryBuilder {
     return $available[$conjunction] ?? $available['AND'];
   }
 
+  protected function stringFromDataArray($data) {
+    if (!isset($data['conjunction'], $data['values'])) {
+      return NULL;
+    }
+    $values = $this->applySearchMethods($data['values']);
+    return $this->createCondition($values, $data['conjunction']);
+  }
+
   /**
    * Applies various search method to parameters, such as prefix matching
    * @param string[] $values an array of search terms
@@ -139,12 +147,18 @@ class QueryBuilder {
    * @return self
    */
   public function addCondition($field, array $values, $conjunction = 'AND', $exact = FALSE) {
-    if (!$exact) {
-      $values = $this->applySearchMethods($values);
-    }
-    $condition = $this->createCondition($values, $conjunction);
     $this->conditions[$field] = $this->conditions[$field] ?? [];
-    $this->conditions[$field][] = $condition;
+
+    if ($exact) {
+      $condition = $this->createCondition($values, $conjunction);
+      $this->conditions[$field][] = $condition;
+    }
+    else {
+      $this->conditions[$field][] = [
+        'conjunction' => $conjunction,
+        'values' => $values
+      ];
+    }
 
     return $this;
   }
@@ -157,11 +171,16 @@ class QueryBuilder {
    * @return self
    */
   public function addGenericCondition(array $values, $conjunction = 'AND', $exact = FALSE) {
-    if (!$exact) {
-      $values = $this->applySearchMethods($values);
+    if ($exact) {
+      $condition = $this->createCondition($values, $conjunction);
+      $this->genericConditions[] = $condition;
     }
-    $condition = $this->createCondition($values, $conjunction);
-    $this->genericConditions[] = $condition;
+    else {
+      $this->genericConditions[] = [
+        'conjunction' => $conjunction,
+        'values' => $values
+      ];
+    }
 
     return $this;
   }
@@ -192,11 +211,14 @@ class QueryBuilder {
         // build a subquery and enclose in parenthesis
         $subvalue = $value->buildRedisearchQuery(TRUE);
         if (strlen($subvalue) > 0) {
-          $value = "(" . $subvalue . ")";
+          $value = '(' . $subvalue . ')';
         }
         else {
           $value = NULL;
         }
+      }
+      elseif (is_array($value)) {
+        $value = $this->stringFromDataArray($value);
       }
 
       // filter out empty and duplicated values from main query
@@ -207,8 +229,19 @@ class QueryBuilder {
 
     // add field-specific values (no subqueries allowed)
     foreach ($this->conditions as $field => $values) {
-      $values = $this->createCondition($values);
-      $query_array[] = "@$field:$values";
+      $field_values = [];
+      foreach ($values as $i => $value) {
+        if (is_array($value)) {
+          $value = $this->stringFromDataArray($value);
+        }
+
+        if ($value !== NULL) {
+          $field_values[] = $value;
+        }
+      }
+
+      $value = $this->createCondition($field_values);
+      $query_array[] = "(@$field:$value)";
     }
 
     // create query string and replace with asterisk if needed
