@@ -251,5 +251,34 @@ class QueryBuilder {
     return $object;
   }
 
+  /**
+   * Sets tokenize status, should be applied before adding conditions for consistency
+   * @param boolean $value new status
+   * @return self
+   */
+  public function setTokenize($value = TRUE) {
+    $this->tokenize = $value;
+    return $this;
+  }
+
+  /**
+   * Sets fuzzy matching status, should be applied before adding conditions for consistency
+   * @param int|false $value new status
+   * @return self
+   */
+  public function setFuzzyMatching($value = 1) {
+    $this->fuzzyMatching = $value;
+    return $this;
+  }
+
+  /**
+   * Sets prefix matching status, should be applied before adding conditions for consistency
+   * @param boolean $value new status
+   * @return self
+   */
+  public function setPrefixMatching($value = TRUE) {
+    $this->prefixMatching = $value;
+    return $this;
+  }
 }
 
