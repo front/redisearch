@@ -5,7 +5,7 @@ class SearchResult {
   protected $count;
   protected $documents;
 
-  public function __construct( $count, $documents ) {
+  public function __construct( $count = 0, $documents = 0 ) {
     $this->count = $count;
     $this->documents = $documents;
   }
@@ -20,20 +20,23 @@ class SearchResult {
 
   public static function searchResult( $rawRediSearchResult, $documentsAsArray, $withIds = true, $withScores = false, $withPayloads = false ) {
     if ( !$rawRediSearchResult ) {
-      return false;
+      return new static();
+    }
+    if ( !is_array($rawRediSearchResult) ) {
+      throw new \UnexpectedValueException("Redisearch result not an array: $rawRediSearchResult");
     }
 
     // return count if there's no body
     $count = array_shift( $rawRediSearchResult );
     if ( count( $rawRediSearchResult ) === 0 ) {
-      return new SearchResult( $count, [] );
+      return new static( $count );
     }
 
     // calculate width of each document
     $results_count = count($rawRediSearchResult);
     $docWidth = count($rawRediSearchResult) / $count;
     if ( floor($docWidth) != $docWidth ) {
-      throw new UnexpectedValueException("Malformed redis result");
+      throw new \UnexpectedValueException('Malformed redisearch result');
     }
 
     // get data from redisearch response in friendlier format
@@ -67,6 +70,6 @@ class SearchResult {
       }
     }
 
-    return new SearchResult($count, $documents);
+    return new static($count, $documents);
   }
 }

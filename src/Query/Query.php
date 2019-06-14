@@ -297,13 +297,13 @@ class Query {
   public function search( $query = '', $documentsAsArray = false ) {
     $rawResult = $this->client->rawCommand( 'FT.SEARCH', $this->searchQueryArgs( $query ) );
 
-    return $rawResult ? SearchResult::searchResult(
-          $rawResult,
-          $documentsAsArray,
-          true,
-          $this->withScores !== '',
-          $this->withPayloads !== ''
-      ) : new SearchResult(0, []);
+    return SearchResult::searchResult(
+      $rawResult,
+      $documentsAsArray,
+      true,
+      $this->withScores !== '',
+      $this->withPayloads !== ''
+    );
   }
 
   public function explain( $query ) {
@@ -328,11 +328,11 @@ class Query {
   public function aggregate( $query, $documentsAsArray = false ) {
     $rawResult = $this->client->rawCommand( 'FT.AGGREGATE', $this->aggregateQueryArgs( $query ) );
 
-    return $rawResult ? SearchResult::searchResult(
-          $rawResult,
-          $documentsAsArray,
-          false
-      ) : new SearchResult(0, []);
+    return SearchResult::searchResult(
+      $rawResult,
+      $documentsAsArray,
+      false
+    );
   }
 
 }
