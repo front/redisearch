@@ -61,6 +61,13 @@ class QueryBuilder {
     return $available[$conjunction] ?? $available['AND'];
   }
 
+  /**
+   * Transform condition array into condition string (for lazy transformations)
+   * @param array $data an assoc array with condition info, required keys:
+   * - conjunction - conjunction operator (AND or OR)
+   * - values - an array of values, before applying search methods such as tokenization
+   * @return string redis query condition
+   */
   protected function stringFromDataArray($data) {
     if (!isset($data['conjunction'], $data['values'])) {
       return NULL;
@@ -77,7 +84,7 @@ class QueryBuilder {
   protected function applySearchMethods(array $values) {
 
     if ($this->tokenize) {
-      $new_values = []; 
+      $new_values = [];
       foreach ($values as $value) {
         $new_values = array_merge($new_values, explode(' ', $value));
       }
@@ -90,7 +97,8 @@ class QueryBuilder {
       if ($this->prefixMatching) {
         $tmp[] = "$value*";
       }
-      elseif ($this->fuzzyMatching && $this->fuzzyMatching >= 1 && $this->fuzzyMatching <= 3) {
+
+      if ($this->fuzzyMatching && $this->fuzzyMatching >= 1 && $this->fuzzyMatching <= 3) {
         $fuzzy_border = str_repeat('%', $this->fuzzyMatching);
         $tmp[] = "$fuzzy_border$value$fuzzy_border";
       }
@@ -270,8 +278,8 @@ class QueryBuilder {
       }
       elseif ($subcondition instanceof ConditionInterface) {
         // conditions are simple field conditions
-        $field = $subcondition->getField(); 
-        $value = $subcondition->getValue(); 
+        $field = $subcondition->getField();
+        $value = $subcondition->getValue();
         $operator = $subcondition->getOperator();
 
         // filter as much as possible - discard unsupported operators
@@ -285,7 +293,7 @@ class QueryBuilder {
   }
 
   /**
-   * Sets tokenize status, should be applied before adding conditions for consistency
+   * Sets tokenize status
    * @param boolean $value new status
    * @return self
    */
@@ -295,7 +303,7 @@ class QueryBuilder {
   }
 
   /**
-   * Sets fuzzy matching status, should be applied before adding conditions for consistency
+   * Sets fuzzy matching status
    * @param int|false $value new status
    * @return self
    */
@@ -305,7 +313,7 @@ class QueryBuilder {
   }
 
   /**
-   * Sets prefix matching status, should be applied before adding conditions for consistency
+   * Sets prefix matching status
    * @param boolean $value new status
    * @return self
    */

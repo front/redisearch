@@ -38,7 +38,7 @@ class SearchResult {
 
     // get data from redisearch response in friendlier format
     $rows = [];
-    for ($i = 0; $i < $results_count; ++$i) {
+    for ($i = 0; $i < $results_count; $i += $docWidth) {
       $rows[] = array_slice($rawRediSearchResult, $i, $docWidth);
     }
 

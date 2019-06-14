@@ -30,6 +30,7 @@ class Query {
   protected $reduce = '';
   protected $apply = '';
   protected $filter = '';
+  protected $withSchema = '';
   protected $client;
   private $indexName;
 
@@ -239,7 +240,7 @@ class Query {
       $query = $query->buildRedisearchQuery();
     }
     $queryParts = array_merge( (array) $query, $this->numericFilters, $this->geoFilters );
-    $queryWithFilters = "'" . implode( ' ', $queryParts ) . "'";
+    $queryWithFilters = implode( ' ', $queryParts );
     return array_filter(
         array_merge(
             trim($queryWithFilters) === '' ? array( $this->indexName ) : array( $this->indexName, $queryWithFilters ),
@@ -268,7 +269,7 @@ class Query {
       $query = $query->buildRedisearchQuery();
     }
     $queryParts = array_merge( (array) $query, $this->numericFilters, $this->geoFilters );
-    $queryWithFilters = "'" . implode( ' ', $queryParts ) . "'";
+    $queryWithFilters = implode( ' ', $queryParts );
 
     // join together groupBy and reduce - they need one another
     if ( strlen($this->groupBy) > 0 && strlen($this->reduce) > 0 ) {
