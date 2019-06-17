@@ -12,6 +12,10 @@ use InvalidArgumentException;
  */
 class QueryBuilder {
 
+  // characters which have special meaning in resis queries
+  // their presence can cause unexpected behavior, so they should be escaped or removed
+  const SYNTAX_CHARACTERS = '{}[]()":;@$%*-~';
+
   /**
    * @var string[] conditions not assigned to fields (fulltext matching)
    */
@@ -33,9 +37,14 @@ class QueryBuilder {
   protected $allOnEmpty;
 
   /**
-   * @var boolean should search terms be split into words
+   * @var bool whether to tokenize by unescaped non-word characters
    */
   protected $tokenize;
+
+  /**
+   * @var string reg-exp character class of characters to escape
+   */
+  protected $escape;
 
   /**
    * @var boolean should string be searched using prefix matching
@@ -46,6 +55,11 @@ class QueryBuilder {
    * @var integer should string be searched using fuzzy matching
    */
   protected $fuzzyMatching;
+
+  /**
+   * @var array list of stop words which to avoid in fuzzy matching
+   */
+  protected $stopWords;
 
   /**
    * Transforms conjunction operator into redisearch equivalent
@@ -77,19 +91,59 @@ class QueryBuilder {
   }
 
   /**
+   * Escape characters in string
+   * @param string $string to escape
+   * @param string $characterClass regexp character class to be escaped
+   * @return string replaced string
+   */
+  protected function escapeCharacters($string, $characters) {
+    // Escape every character to avoid ambiguity
+    $characters = '\\' . implode('\\', str_split($characters));
+    $pattern = '\\\\?([' . $characters . '])';
+    return preg_replace("/$pattern/u", '\\\\\1', $string);
+  }
+
+  /**
+   * Remove unescaped syntax characters from string
+   * @param string $string to filter
+   * @return string filtered string
+   */
+  protected function removeSyntaxCharacters($string) {
+    $characters = '\\' . implode('\\', str_split(self::SYNTAX_CHARACTERS));
+    $pattern = "(?<!\\\\)[$characters]";
+    return preg_replace("/$pattern/", '', $string);
+  }
+
+  /**
    * Applies various search method to parameters, such as prefix matching
    * @param string[] $values an array of search terms
    * @return string[] an array of search terms with search methods applied
    */
   protected function applySearchMethods(array $values) {
 
+    // todo matching with negation (-) and optional terms (~)
+    // escape characters
+    if ($this->escape) {
+      $values = array_map(function($el) {
+        return $this->escapeCharacters($el, $this->escape);
+      }, $values);
+    }
+
+    // split by unescaped non-word characters
     if ($this->tokenize) {
       $new_values = [];
+      $pattern = '(?<!\\)[^\w]';
       foreach ($values as $value) {
-        $new_values = array_merge($new_values, explode(' ', $value));
+        $split_data = preg_split("/$pattern/u", $value, NULL, PREG_SPLIT_NO_EMPTY);
+        $new_values = array_merge($new_values, $split_data);
       }
       $values = $new_values;
     }
+
+    // remove unescaped syntax characters
+    $values = array_map(function($el) {
+      return $this->removeSyntaxCharacters($el);
+    }, $values);
 
     foreach ($values as $i => $value) {
       $tmp = [];
@@ -98,9 +152,13 @@ class QueryBuilder {
         $tmp[] = "$value*";
       }
 
-      if ($this->fuzzyMatching && $this->fuzzyMatching >= 1 && $this->fuzzyMatching <= 3) {
+      // avoid fuzzy matching stop words
+      $fuzzyInRange = $this->fuzzyMatching >= 1 && $this->fuzzyMatching <= 3;
+      if ($fuzzyInRange && !in_array($value, $this->stopWords)) {
         $fuzzy_border = str_repeat('%', $this->fuzzyMatching);
-        $tmp[] = "$fuzzy_border$value$fuzzy_border";
+        // escape everything which is not a word to avoid syntax error
+        $tmp_string = $this->escapeCharacters($value, '[^\w]');
+        $tmp[] = "$fuzzy_border$tmp_string$fuzzy_border";
       }
 
       if (count($tmp) == 0) {
@@ -135,15 +193,19 @@ class QueryBuilder {
    * - conjunction
    * - allOnEmpty
    * - tokenize
+   * - escape
    * - prefixMatching
    * - fuzzyMatching
+   * - stopWords
    */
   public function __construct($params) {
     $this->conjunction = $params['conjunction'] ?? 'AND';
     $this->allOnEmpty = $params['allOnEmpty'] ?? TRUE;
     $this->tokenize = $params['tokenize'] ?? FALSE;
+    $this->escape = $params['escape'] ?? FALSE;
     $this->prefixMatching = $params['prefixMatching'] ?? FALSE;
     $this->fuzzyMatching = $params['fuzzyMatching'] ?? FALSE;
+    $this->stopWords = $params['stopWords'] ?? [];
   }
 
   /**
@@ -319,6 +381,26 @@ class QueryBuilder {
    */
   public function setPrefixMatching($value = TRUE) {
     $this->prefixMatching = $value;
+    return $this;
+  }
+
+  /**
+   * Sets escape characters or disables escaping
+   * @param string|FALSE $value new status
+   * @return self
+   */
+  public function setEscape($value) {
+    $this->escape = $value;
+    return $this;
+  }
+
+  /**
+   * Sets stop words
+   * @param array $value new list of stop words
+   * @return self
+   */
+  public function setStopWords(array $value) {
+    $this->stopWords = $value;
     return $this;
   }
 }
