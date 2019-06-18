@@ -94,11 +94,14 @@ class QueryBuilder {
    * Escape characters in string
    * @param string $string to escape
    * @param string $characterClass regexp character class to be escaped
+   * @param boolean $escape whether to escape contents of $characters
    * @return string replaced string
    */
-  protected function escapeCharacters($string, $characters) {
-    // Escape every character to avoid ambiguity
-    $characters = '\\' . implode('\\', str_split($characters));
+  protected function escapeCharacters($string, $characters, $escape = TRUE) {
+    if ($escape) {
+      // Escape every character to avoid ambiguity
+      $characters = '\\' . implode('\\', str_split($characters));
+    }
     $pattern = '\\\\?([' . $characters . '])';
     return preg_replace("/$pattern/u", '\\\\\1', $string);
   }
@@ -157,7 +160,7 @@ class QueryBuilder {
       if ($fuzzyInRange && !in_array($value, $this->stopWords)) {
         $fuzzy_border = str_repeat('%', $this->fuzzyMatching);
         // escape everything which is not a word to avoid syntax error
-        $tmp_string = $this->escapeCharacters($value, '[^\w]');
+        $tmp_string = $this->escapeCharacters($value, '^\w', FALSE);
         $tmp[] = "$fuzzy_border$tmp_string$fuzzy_border";
       }
 
@@ -352,6 +355,16 @@ class QueryBuilder {
     }
 
     return $object;
+  }
+
+  /**
+   * Sets conjunction operator
+   * @param string $value new status
+   * @return self
+   */
+  public function setConjunction($value) {
+    $this->conjunction = $value;
+    return $this;
   }
 
   /**
