@@ -169,6 +169,7 @@ class Query {
     }
 
     $this->terms = implode(' ', $terms_list);
+    return $this;
   }
 
   /**

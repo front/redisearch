@@ -105,8 +105,8 @@ class SearchResult {
       foreach ($row_data[0] as $suggestion) {
         list ($score, $word) = $suggestion;
 
-        // discard single-letter suggestions
-        if (strlen($word) > 1) {
+        // discard suggestions shorter than 3 letters
+        if (strlen($word) > 2) {
           $document['suggestions'][$word] = $score;
         }
       }
