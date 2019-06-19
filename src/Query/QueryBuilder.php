@@ -201,7 +201,7 @@ class QueryBuilder {
    * - fuzzyMatching
    * - stopWords
    */
-  public function __construct($params) {
+  public function __construct($params = []) {
     $this->conjunction = $params['conjunction'] ?? 'AND';
     $this->allOnEmpty = $params['allOnEmpty'] ?? TRUE;
     $this->tokenize = $params['tokenize'] ?? FALSE;

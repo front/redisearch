@@ -31,6 +31,8 @@ class Query {
   protected $apply = '';
   protected $filter = '';
   protected $withSchema = '';
+  protected $distance = '';
+  protected $terms = '';
   protected $client;
   private $indexName;
 
@@ -70,7 +72,7 @@ class Query {
     return $this;
   }
 
-  public function payload( $payload) {
+  public function payload( $payload ) {
     $this->payload = "PAYLOAD $payload";
     return $this;
   }
@@ -149,6 +151,24 @@ class Query {
   public function language( $languageName ) {
     $this->language = "LANGUAGE $languageName";
     return $this;
+  }
+
+  public function distance( $distance ) {
+    if ($distance < 1 || $distance > 4) {
+      throw new InvalidArgumentException($distance);
+    }
+    $this->distance = "DISTANCE $distance";
+    return $this;
+  }
+
+  public function terms( array $terms ) {
+    $terms_list = [];
+    foreach ($terms as $name => $include) {
+      $include = $include ? 'INCLUDE' : 'EXCLUDE';
+      $terms_list[] = "TERMS $include $name";
+    }
+
+    $this->terms = implode(' ', $terms_list);
   }
 
   /**
@@ -294,6 +314,24 @@ class Query {
     );
   }
 
+  public function spellcheckQueryArgs( $query ) {
+    if ($query instanceof QueryBuilder) {
+      $query = $query->buildRedisearchQuery();
+    }
+    $query = implode( ' ', (array) $query );
+
+    return array_filter(
+        array_merge(
+            trim($query) === '' ? array( $this->indexName ) : array( $this->indexName, $query ),
+            explode( ' ', $this->distance ),
+            explode( ' ', $this->terms )
+        ),
+        function ( $item ) {
+          return !is_null( $item ) && $item !== '';
+        }
+    );
+  }
+
   public function search( $query = '', $documentsAsArray = false ) {
     $rawResult = $this->client->rawCommand( 'FT.SEARCH', $this->searchQueryArgs( $query ) );
 
@@ -332,6 +370,15 @@ class Query {
       $rawResult,
       $documentsAsArray,
       false
+    );
+  }
+
+  public function spellcheck( $query, $documentsAsArray = false ) {
+    $rawResult = $this->client->rawCommand( 'FT.SPELLCHECK', $this->spellcheckQueryArgs( $query ) );
+
+    return SearchResult::spellcheckResult(
+      $rawResult,
+      $documentsAsArray
     );
   }
 

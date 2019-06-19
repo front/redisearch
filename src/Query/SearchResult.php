@@ -1,9 +1,17 @@
 <?php
+
 namespace FKRediSearch\Query;
 
 class SearchResult {
   protected $count;
   protected $documents;
+
+  protected static function arrayToObject($documents) {
+    foreach ($documents as $i => $doc) {
+      $documents[$i] = (object) $doc;
+    }
+    return $documents;
+  }
 
   public function __construct( $count = 0, $documents = 0 ) {
     $this->count = $count;
@@ -65,11 +73,52 @@ class SearchResult {
 
     // Transform result into object if needed
     if (!$documentsAsArray) {
-      foreach ($documents as $i => $doc) {
-        $documents[$i] = (object) $doc;
-      }
+      $documents = static::arrayToObject($documents);
     }
 
     return new static($count, $documents);
+  }
+
+  public static function spellcheckResult($rawRediSearchResult, $documentsAsArray) {
+    if ( !$rawRediSearchResult ) {
+      return new static();
+    }
+    if ( !is_array($rawRediSearchResult) ) {
+      throw new \UnexpectedValueException("Redisearch result not an array: $rawRediSearchResult");
+    }
+
+    $documents = [];
+    foreach ($rawRediSearchResult as $row_data) {
+      $document = [];
+
+      $term = array_shift($row_data);
+      if ($term == 'TERM') {
+        $document['term'] = array_shift($row_data);
+      }
+
+      if (!isset($document['term']) || count($row_data) != 1) {
+        throw new \UnexpectedValueException('Malformed data - not a spellcheck result');
+      }
+
+      // Add suggestions to document
+      $document['suggestions'] = [];
+      foreach ($row_data[0] as $suggestion) {
+        list ($score, $word) = $suggestion;
+
+        // discard single-letter suggestions
+        if (strlen($word) > 1) {
+          $document['suggestions'][$word] = $score;
+        }
+      }
+
+      $documents[] = $document;
+    }
+
+    // Transform result into object if needed
+    if (!$documentsAsArray) {
+      $documents = static::arrayToObject($documents);
+    }
+
+    return new static(count($documents), $documents);
   }
 }
