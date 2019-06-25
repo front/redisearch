@@ -319,16 +319,12 @@ class Index {
 	 *
 	 * @return object $this
 	 */
-	public function delete( $indexName = NULL, $id = 0 ) {
-		if ( ! isset( $indexName ) ) {
+	public function delete( $id = NULL ) {
+		if ( $id === NULL ) {
 			return;
 		}
 
-		if ( $id == 0 ) {
-			return;
-		}
-
-		$command = array( $indexName, $id, 'DD' );
+		$command = array( $this->indexName, $id, 'DD' );
 		$this->client->rawCommand( 'FT.DEL', $command );
 
 		return $this;
