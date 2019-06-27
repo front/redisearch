@@ -135,10 +135,12 @@ class QueryBuilder {
     // split by unescaped non-word characters
     if ($this->tokenize) {
       $new_values = [];
-      $pattern = '(?<!\\)[^\w]';
+      $pattern = '(?<!\\\\)[^\w]';
       foreach ($values as $value) {
         $split_data = preg_split("/$pattern/u", $value, NULL, PREG_SPLIT_NO_EMPTY);
-        $new_values = array_merge($new_values, $split_data);
+        if ($split_data) {
+          $new_values = array_merge($new_values, $split_data);
+        }
       }
       $values = $new_values;
     }
