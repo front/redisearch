@@ -111,6 +111,17 @@ After indexing documents, index can be written to the disk and in case of networ
 $index->writeToDisk();
 ```
 
+#### Query builder
+Class Query\QueryBuilder is designed to help with construction of redisearch queries used in search and aggregation. It uses `addCondition()`, `addGenericCondition()` and `addSubcondition()` methods to add conditions to a query and also enables using partial search, fuzzy search, escaping, tokenization and stop words. Example:
+
+```php
+$query = new QueryBuilder();
+$query->setTokenize()
+  ->setFuzzyMatching()
+  ->addCondition('field', ['value1', 'value2'], 'OR');
+$condition = $query->buildRedisearchQuery();
+```
+
 #### Search
 And here is how to search:
 ```php
@@ -146,6 +157,4 @@ $results->getDocuments(); // Returns search results object or array
 
 **Todos**:
 * Add support for suggestion (auto-complete).
-* Add support for TAGVALS (This will return all existing TAGs indexed within a specific field. It is extremely usefull for facet search fileters).
 * Add comment to all methods.
-* Add support for Spell Check (This is useful to show *Do you mean: ...* feature like google and other search engines does).
