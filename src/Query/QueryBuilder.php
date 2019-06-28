@@ -2,8 +2,6 @@
 
 namespace FKRediSearch\Query;
 
-use Drupal\search_api\Query\ConditionInterface;
-use Drupal\search_api\Query\ConditionGroupInterface;
 use InvalidArgumentException;
 
 /**
@@ -326,37 +324,6 @@ class QueryBuilder {
     }
 
     return $query;
-  }
-
-  /**
-   * Creates QueryBuilder instance from ConditionGroupInterface instance
-   * @param ConditionGroupInterface $condition
-   * @param string[] $params a list of parameters passed to QueryBuilder constructor
-   * @return QueryBuilder
-   */
-  public static function fromConditionGroup(ConditionGroupInterface $condition, array $params = []) {
-    $params["conjunction"] = $condition->getConjunction();
-    $object = new static($params);
-    foreach ($condition->getConditions() as $subcondition) {
-
-      if ($subcondition instanceof ConditionGroupInterface) {
-        // recurse into nested groups
-        $object->addSubcondition(static::fromConditionGroup($subcondition, $params));
-      }
-      elseif ($subcondition instanceof ConditionInterface) {
-        // conditions are simple field conditions
-        $field = $subcondition->getField();
-        $value = $subcondition->getValue();
-        $operator = $subcondition->getOperator();
-
-        // filter as much as possible - discard unsupported operators
-        if ($operator == '=') {
-          $object->addCondition($field, (array) $value, 'AND', TRUE);
-        }
-      }
-    }
-
-    return $object;
   }
 
   /**
