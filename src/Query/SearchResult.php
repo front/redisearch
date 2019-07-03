@@ -79,7 +79,7 @@ class SearchResult {
       $documents = static::arrayToObject($documents);
     }
 
-    return new static(count($documents), $documents);
+    return new static($count, $documents);
   }
 
   public static function spellcheckResult($rawRediSearchResult, $documentsAsArray) {
