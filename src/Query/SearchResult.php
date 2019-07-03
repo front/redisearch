@@ -42,8 +42,11 @@ class SearchResult {
 
     // calculate width of each document
     $results_count = count($rawRediSearchResult);
-    $docWidth = count($rawRediSearchResult) / $count;
-    if ( floor($docWidth) != $docWidth ) {
+    $docWidth = 1;
+    $docWidth += $withIds ? 1 : 0;
+    $docWidth += $withScores ? 1 : 0;
+    $docWidth += $withPayloads ? 1 : 0;
+    if ( $results_count % $docWidth != 0 ) {
       throw new \UnexpectedValueException('Malformed redisearch result');
     }
 
@@ -76,7 +79,7 @@ class SearchResult {
       $documents = static::arrayToObject($documents);
     }
 
-    return new static($count, $documents);
+    return new static(count($documents), $documents);
   }
 
   public static function spellcheckResult($rawRediSearchResult, $documentsAsArray) {
