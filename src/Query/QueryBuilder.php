@@ -220,17 +220,19 @@ class QueryBuilder {
    * @return self
    */
   public function addCondition($field, array $values, $conjunction = 'AND', $exact = FALSE) {
-    $this->conditions[$field] = $this->conditions[$field] ?? [];
+    if (count($values) > 0) {
+      $this->conditions[$field] = $this->conditions[$field] ?? [];
 
-    if ($exact) {
-      $condition = $this->createCondition($values, $conjunction);
-      $this->conditions[$field][] = $condition;
-    }
-    else {
-      $this->conditions[$field][] = [
-        'conjunction' => $conjunction,
-        'values' => $values
-      ];
+      if ($exact) {
+        $condition = $this->createCondition($values, $conjunction);
+        $this->conditions[$field][] = $condition;
+      }
+      else {
+        $this->conditions[$field][] = [
+          'conjunction' => $conjunction,
+          'values' => $values
+        ];
+      }
     }
 
     return $this;
@@ -244,15 +246,17 @@ class QueryBuilder {
    * @return self
    */
   public function addGenericCondition(array $values, $conjunction = 'AND', $exact = FALSE) {
-    if ($exact) {
-      $condition = $this->createCondition($values, $conjunction);
-      $this->genericConditions[] = $condition;
-    }
-    else {
-      $this->genericConditions[] = [
-        'conjunction' => $conjunction,
-        'values' => $values
-      ];
+    if (count($values) > 0) {
+      if ($exact) {
+        $condition = $this->createCondition($values, $conjunction);
+        $this->genericConditions[] = $condition;
+      }
+      else {
+        $this->genericConditions[] = [
+          'conjunction' => $conjunction,
+          'values' => $values
+        ];
+      }
     }
 
     return $this;
