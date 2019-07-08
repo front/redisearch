@@ -327,6 +327,46 @@ class QueryBuilder {
   }
 
   /**
+   * Returns the array of present conditions made recursively
+   * It can be used to determine if a given condition exists in a query or not
+   * It does not return any info on the joining method of conditions
+   * @param string|null $name the name of the condition field, empty if generic fields
+   * @return array
+   */
+  public function getAllConditions($name = NULL) {
+    $values = [];
+
+    foreach ($this->genericConditions as $cond) {
+      if ($cond instanceof self) {
+        $values = array_merge($values, $cond->getAllConditions($name));
+      }
+      elseif ($name === NULL) {
+        if (is_array($cond)) {
+          $values = array_merge($values, $cond['values']);
+        } else {
+          $values[] = $cond;
+        }
+      }
+    }
+
+    if ($name !== NULL) {
+      foreach ($this->conditions as $cond_name => $conds) {
+        if ($cond_name == $name) {
+          foreach ($conds as $cond) {
+            if (is_array($cond)) {
+              $values = array_merge($values, $cond['values']);
+            } else {
+              $values[] = $cond;
+            }
+          }
+        }
+      }
+    }
+
+    return $values;
+  }
+
+  /**
    * Sets conjunction operator
    * @param string $value new status
    * @return self
