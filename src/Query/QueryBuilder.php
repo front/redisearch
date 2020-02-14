@@ -55,6 +55,11 @@ class QueryBuilder {
   protected $fuzzyMatching;
 
   /**
+   * @var integer Weight difference between fuzzy and exact match
+   */
+  protected $fuzzyDifference;
+
+  /**
    * @var array list of stop words which to avoid in fuzzy matching
    */
   protected $stopWords;
@@ -151,13 +156,15 @@ class QueryBuilder {
     foreach ($values as $i => $value) {
       $tmp = [];
 
+      $tmp[] = $value . '=>{$weight:' . $this->fuzzyDifference * 2 . '}';
+
       if ($this->prefixMatching) {
-        $tmp[] = "$value*";
+//        $tmp[] = "$value";
+        $tmp[] = $value . '*=>{$weight:' . $this->fuzzyDifference . '}';
       }
 
-      // avoid fuzzy matching stop words
       $fuzzyInRange = $this->fuzzyMatching >= 1 && $this->fuzzyMatching <= 3;
-      if ($fuzzyInRange && !in_array($value, $this->stopWords)) {
+      if ($fuzzyInRange) {
         $fuzzy_border = str_repeat('%', $this->fuzzyMatching);
         // escape everything which is not a word to avoid syntax error
         $tmp_string = $this->escapeCharacters($value, '^\w', FALSE);
@@ -393,10 +400,12 @@ class QueryBuilder {
   /**
    * Sets fuzzy matching status
    * @param int|false $value new status
+   * @param int $difference new status
    * @return self
    */
-  public function setFuzzyMatching($value = 1) {
+  public function setFuzzyMatching($value = 1, $difference = 100) {
     $this->fuzzyMatching = $value;
+    $this->fuzzyDifference = $difference;
     return $this;
   }
 
