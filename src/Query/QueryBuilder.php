@@ -215,6 +215,7 @@ class QueryBuilder {
     $this->escape = $params['escape'] ?? FALSE;
     $this->prefixMatching = $params['prefixMatching'] ?? FALSE;
     $this->fuzzyMatching = $params['fuzzyMatching'] ?? FALSE;
+    $this->fuzzyDifference = $params['fuzzyDifference'] ?? 100;
     $this->stopWords = $params['stopWords'] ?? [];
   }
 
