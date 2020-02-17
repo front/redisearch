@@ -31,7 +31,7 @@ class SearchResult {
       return new static();
     }
     if ( !is_array($rawRediSearchResult) ) {
-      throw new \UnexpectedValueException("Redisearch result not an array: $rawRediSearchResult");
+      return new static();
     }
 
     // return count if there's no body
@@ -87,7 +87,7 @@ class SearchResult {
       return new static();
     }
     if ( !is_array($rawRediSearchResult) ) {
-      throw new \UnexpectedValueException("Redisearch result not an array: $rawRediSearchResult");
+      return new static();
     }
 
     $documents = [];

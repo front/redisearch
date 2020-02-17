@@ -334,6 +334,7 @@ class Query {
   }
 
   public function search( $query = '', $documentsAsArray = false ) {
+    \Drupal::logger('search_api_foad')->warning("search query: " . json_encode($this->searchQueryArgs( $query )));
     $rawResult = $this->client->rawCommand( 'FT.SEARCH', $this->searchQueryArgs( $query ) );
 
     return SearchResult::searchResult(
