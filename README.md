@@ -5,7 +5,7 @@
 ### How to use
 First, you will need to install and configure [Redis](https://redis.io/topics/quickstart) and [RediSearch](https://oss.redislabs.com/redisearch/Quick_Start/).
 
-Then add this package to your project via `composer require` or just downloading this repository.
+Then add this package to your project via `composer require front/redisearch` or just downloading this repository.
 
 For all kind of operations, first step is to connect to redis server:
 
