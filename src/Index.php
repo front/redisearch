@@ -50,6 +50,67 @@ class Index {
 	 */
 	private $prefix = '*';
 
+	/**
+	 * @var string
+	 */
+	private $language = 'english';
+
+	/**
+	 * @var string
+	 */
+	private $langField = NULL;
+
+	/**
+	 * @var float
+	 */
+	private $score = 1.0;
+
+	/**
+	 * @var string
+	 */
+	private $scoreField = NULL;
+
+	/**
+	 * @var string
+	 */
+	private $payloadField = NULL;
+
+	/**
+	 * @var int
+	 */
+	private $maxFields = NULL;
+
+	/**
+	 * @var bool
+	 */
+	private $temporary = FALSE;
+
+	/**
+	 * @var int
+	 */
+	private $expires = 1;
+
+	/**
+	 * @var bool
+	 */
+	private $noHighlight = FALSE;
+
+	/**
+	 * @var bool
+	 */
+	private $nofreqs = FALSE;
+
+	/**
+	 * @var bool
+	 */
+	private $skipInScan = FALSE;
+
+
+  /**
+   * Index constructor.
+   *
+   * @param object $client The redis client instance
+   */
 	public function __construct( $client ) {
 		$this->client = $client;
 	}
@@ -79,13 +140,58 @@ class Index {
 	public function create() {
 		$properties = array( $this->getIndexName() );
 
+		$properties = array_merge( $properties, array('ON', $this->on) );
+
+		if ( is_array( $this->getPrefix() ) ) {
+		  $prefixCount = count( $this->getPrefix() );
+		  $properties = array_merge( $properties, array('PREFIX', $prefixCount, $this->getPrefix()) );
+    } else {
+		  $properties = array_merge( $properties, array('PREFIX', 1, $this->getPrefix()) );
+    }
+
+		$properties = array_merge( $properties, array('LANGUAGE', $this->getDefaultLang()) );
+
+		if ( $this->hasLangField() ) {
+			$properties = array_merge( $properties, array('LANGUAGE_FIELD', $this->getLangField()) );
+		}
+
+		$properties = array_merge( $properties,  array('SCORE', $this->getScore()) );
+
+		if ( $this->isScoreFieldSet() ) {
+			$properties = array_merge( $properties, array( 'SCORE_FIELD', $this->getScoreField()) );
+		}
+
+		if ( $this->isPayloadFieldSet() ) {
+		  $properties = array_merge( $properties, array( 'PAYLOAD_FIELD', $this->getPayloadField()) );
+    }
+
+		if ( $this->isMaxFieldsSet() ) {
+		  $properties = array_merge( $properties, array( 'MAXTEXTFIELDS', $this->getMaxFields()) );
+    }
+
 		if ( $this->isNoOffsetsEnabled() ) {
 			$properties[] = 'NOOFFSETS';
 		}
 
-		if ( $this->isNoFieldsEnabled() ) {
-			$properties[] = 'NOFIELDS';
-		}
+		if ( $this->isTemporary() ) {
+		  $properties = array_merge( $properties, array( 'TEMPORARY', $this->getExpirationTime()) );
+    }
+
+    if ( $this->isNoHighlight() ) {
+      $properties[] = 'NOHL';
+    }
+
+    if ( $this->isNoFieldsEnabled() ) {
+      $properties[] = 'NOFIELDS';
+    }
+
+    if ( $this->isNoFreqsSet() ) {
+      $properties[] = 'NOFREQS';
+    }
+
+    if ( $this->isSkipInitialScanSet() ) {
+      $properties[] = 'SKIPINITIALSCAN';
+    }
 
 		if ( ! is_null( $this->stopWords ) ) {
 			$properties[] = 'STOPWORDS';
@@ -120,7 +226,7 @@ class Index {
    *
    * @param string $on
    *
-   * @return Index
+   * @return object Index
    */
 	public function on( $on = 'HASH' ) {
 	  $this->on = $on;
@@ -134,7 +240,7 @@ class Index {
    *
    * @param array|string $prefix
    *
-   * @return Index
+   * @return object Index
    */
   public function setPrefix( $prefix = '*' ) {
     $this->prefix = $prefix;
@@ -142,23 +248,34 @@ class Index {
     return $this;
   }
 
-	/**
-	 * @return bool
-	 */
-	public function isNoOffsetsEnabled() {
-		return $this->noOffsetsEnabled;
-	}
+  /**
+   * @return array|string
+   */
+  public function getPrefix() {
+    return $this->prefix;
+  }
 
   /**
+   * If set, term offsets won't be stores for documents
+   * This saves memory, but does not allow exact searches or highlighting.
+   * Note: Implies NOHL .
+   *
    * @param bool $noOffsetsEnabled
    *
-   * @return Index
+   * @return object Index
    */
 	public function setNoOffsetsEnabled( $noOffsetsEnabled ) {
 		$this->noOffsetsEnabled = $noOffsetsEnabled;
 
 		return $this;
 	}
+
+  /**
+   * @return bool
+   */
+  public function isNoOffsetsEnabled() {
+    return $this->noOffsetsEnabled;
+  }
 
 
 	/**
@@ -171,7 +288,7 @@ class Index {
   /**
    * @param bool $noFieldsEnabled
    *
-   * @return Index
+   * @return object Index
    */
 	public function setNoFieldsEnabled( $noFieldsEnabled ) {
 		$this->noFieldsEnabled = $noFieldsEnabled;
@@ -201,7 +318,7 @@ class Index {
   /**
    * @param array $stopWords Array of custom stop words
    *
-   * @return Index
+   * @return object Index
    */
 	public function setStopWords( $stopWords = NULL ) {
 		$this->stopWords = $stopWords;
@@ -210,13 +327,239 @@ class Index {
 	}
 
   /**
-   * @return Index
+   * @return object Index
    */
 	public function noStopWords() {
 		$this->stopWords = 0;
 
 		return $this;
 	}
+
+  /**
+   * If set indicates the default language for documents in the index.
+   * Default to English.
+   * Note: A stemmer is used for the supplied language during indexing. If an unsupported language is sent, the command returns an error. The supported languages are:
+   * "arabic", "danish", "dutch", "english", "finnish", "french", "german", "hungarian", "italian", "norwegian", "portuguese", "romanian", "russian", "spanish", "swedish", "tamil", "turkish" "chinese"
+   *
+   * @param string $language
+   *
+   * @return object Index
+   */
+	public function setDefaultLang( $language ) {
+	  $this->language = $language;
+	  return $this;
+  }
+
+  public function getDefaultLang() {
+	  return $this->language;
+  }
+
+  /**
+   * If set indicates the document field that should be used as the document language.
+   *
+   * @param string $field
+   *
+   * @return object Index
+   */
+  public function setLangField( $field ) {
+	  $this->langField = $field;
+	  return $this;
+  }
+
+  /**
+   * @return bool
+   */
+  public function hasLangField() {
+    return isset( $this->langField );
+  }
+
+  /**
+   * @return bool
+   */
+  public function getLangField() {
+    return isset( $this->langField );
+  }
+
+  /**
+   * If set indicates the default score for documents in the index.
+   * Default score is 1.0.
+   *
+   * @param float $score
+   *
+   * @return object Index
+   */
+  public function setScore( $score ) {
+    $this->score = $score;
+    return $this;
+  }
+
+  /**
+   * @return float
+   */
+  public function getScore() {
+    return $this->score;
+  }
+
+  /**
+   * If set indicates the document field that should be used as the document's rank based on the user's ranking.
+   * Ranking must be between 0.0 and 1.0. If not set the default score is 1.
+   *
+   * @param string $scoreField
+   *
+   * @return object Index
+   */
+  public function setScoreField( $scoreField ) {
+    $this->scoreField = $scoreField;
+    return $this;
+  }
+
+  /**
+   * @return bool
+   */
+  public function isScoreFieldSet() {
+    return isset( $this->scoreField );
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getScoreField() {
+    return $this->scoreField;
+  }
+
+  /**
+   *  If set indicates the document field that should be used as a binary safe payload string to the document,
+   * that can be evaluated at query time by a custom scoring function, or retrieved to the client.
+   *
+   * @param string $payloadField
+   *
+   * @return object Index
+   */
+  public function setPayloadField( $payloadField ) {
+    $this->payloadField = $payloadField;
+    return $this;
+  }
+
+  /**
+   * @return bool
+   */
+  public function isPayloadFieldSet() {
+    return isset( $this->payloadField );
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getPayloadField() {
+    return $this->payloadField;
+  }
+
+  /**
+   * For efficiency, RediSearch encodes indexes differently if they are created with less than 32 text fields.
+   * This option forces RediSearch to encode indexes as if there were more than 32 text fields,
+   * which allows you to add additional fields (beyond 32) using FT.ALTER .
+   *
+   * @param integer $maxFields
+   *
+   * @return object Index
+   */
+  public function setMaxFields( $maxFields ) {
+    $this->maxFields = $maxFields;
+    return $this;
+  }
+
+  /**
+   * @return bool
+   */
+  public function isMaxFieldsSet() {
+    return isset( $this->maxFields );
+  }
+
+  public function getMaxFields() {
+    return $this->maxFields;
+  }
+
+  /**
+   * @param $expires
+   *
+   * @return $this
+   */
+  public function setTemporary( $expires ) {
+    $this->temporary = TRUE;
+    $this->expires = $expires;
+    return $this;
+  }
+
+  /**
+   * @return bool
+   */
+  public function isTemporary() {
+    return $this->temporary;
+  }
+
+  /**
+   * @return int
+   */
+  public function getExpirationTime() {
+    return $this->expires;
+  }
+
+  /**
+   * Conserves storage space and memory by disabling highlighting support.
+   * If set, we do not store corresponding byte offsets for term positions.
+   * Note: NOHL is also implied by NOOFFSETS .
+   *
+   * @param bool $noHighlight
+   *
+   * @return object Index
+   */
+  public function setNoHighlight( $noHighlight ) {
+    $this->noHighlight = $noHighlight;
+    return $this;
+  }
+
+  /**
+   * @return bool
+   */
+  public function isNoHighlight() {
+    return $this->noHighlight;
+  }
+
+  /**
+   * If set, we avoid saving the term frequencies in the index.
+   * This saves memory but does not allow sorting based on the frequencies of a given term within the document.
+   *
+   * @param bool $noFreqs
+   *
+   * @return object Index
+   */
+  public function setNoFreqs( $noFreqs ) {
+    $this->nofreqs = $noFreqs;
+    return $this;
+  }
+
+  /**
+   * @return bool
+   */
+  public function isNoFreqsSet() {
+    return $this->nofreqs;
+  }
+
+  /**
+   * If set, we do not scan and index.
+   *
+   * @param bool $noInitialScan
+   *
+   * @return object Index
+   */
+  public function skipInitialScan( $noInitialScan ) {
+    $this->skipInScan = $noInitialScan;
+    return $this;
+  }
+
+  public function isSkipInitialScanSet() {
+    return $this->skipInScan;
+  }
 
   /**
    * @param array $synonymList
@@ -272,7 +615,7 @@ class Index {
    * @param bool $sortable
    * @param bool $noindex
    *
-   * @return Index
+   * @return object Index
    */
 	public function addTextField( $name, $weight = 1.0, $sortable = FALSE, $noindex = FALSE ) {
 		$this->$name = ( new TextField( $name ) )->setSortable( $sortable )->setNoindex( $noindex )->setWeight( $weight );
@@ -287,7 +630,7 @@ class Index {
    *
    * @param string $separator
    *
-   * @return Index
+   * @return object Index
    */
 	public function addTagField( $name, $sortable = FALSE, $noindex = FALSE, $separator = ',' ) {
 		$this->$name = ( new TagField( $name ) )->setSortable( $sortable )->setNoindex( $noindex )->setSeparator( $separator );
@@ -300,7 +643,7 @@ class Index {
    * @param bool $sortable
    * @param bool $noindex
    *
-   * @return Index
+   * @return object Index
    */
 	public function addNumericField( $name, $sortable = FALSE, $noindex = FALSE ) {
 		$this->$name = ( new NumericField( $name ) )->setSortable( $sortable )->setNoindex( $noindex );
@@ -313,7 +656,7 @@ class Index {
    *
    * @param bool $noindex
    *
-   * @return Index
+   * @return object Index
    */
 	public function addGeoField( $name, $noindex = FALSE ) {
 		$this->$name = ( new GeoField( $name ) )->setNoindex( $noindex );
