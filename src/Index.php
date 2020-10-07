@@ -2,13 +2,11 @@
 
 namespace FKRediSearch;
 
-use FKRediSearch\Fields\AbstractField;
 use FKRediSearch\Fields\FieldInterface;
 use FKRediSearch\Fields\GeoField;
 use FKRediSearch\Fields\NumericField;
 use FKRediSearch\Fields\TextField;
 use FKRediSearch\Fields\TagField;
-use FKRediSearch\Document\Document;
 
 class Index {
 
@@ -55,41 +53,6 @@ class Index {
 	 */
 	public function drop() {
 		return $this->client->rawCommand( 'FT.DROP', array( $this->getIndexName() ) );
-	}
-
-	/**
-	 * Create index in redis server from raw params.
-	 *
-	 * @since    0.1.0
-	 *
-	 * @param
-	 *
-	 * @return
-	 */
-	public function rawCreate( $indexName = NULL, $schema = array(), $stop_words = NULL ) {
-		if ( ! isset( $indexName ) ) {
-			return;
-		}
-
-		if ( empty( $schema ) ) {
-			return;
-		}
-
-		$index_schema = array( $indexName );
-
-		if ( $stop_words == 0 ) {
-			$index_schema = array_merge( $index_schema, array( 'STOPWORDS', 0 ) );
-		} else if ( is_array( $stop_words ) && ! empty( $stop_words ) ) {
-			$stop_words       = array_map( 'trim', $stop_words );
-			$stop_words_count = count( $stop_words );
-			if ( $stop_words_count != 0 ) {
-				$index_schema = array_merge( $index_schema, array( 'STOPWORDS', $stop_words_count ), $stop_words );
-			}
-		}
-
-		$index_schema = array_merge( $index_schema, array( 'SCHEMA' ), $schema );
-
-		return $this->client->rawCommand( 'FT.CREATE', $index_schema );
 	}
 
 	/**
@@ -143,11 +106,11 @@ class Index {
 		return $this->noOffsetsEnabled;
 	}
 
-	/**
-	 * @param bool $noOffsetsEnabled
-	 *
-	 * @return IndexInterface
-	 */
+  /**
+   * @param bool $noOffsetsEnabled
+   *
+   * @return Index
+   */
 	public function setNoOffsetsEnabled( $noOffsetsEnabled ) {
 		$this->noOffsetsEnabled = $noOffsetsEnabled;
 
@@ -162,11 +125,11 @@ class Index {
 		return $this->noFieldsEnabled;
 	}
 
-	/**
-	 * @param bool $noFieldsEnabled
-	 *
-	 * @return IndexInterface
-	 */
+  /**
+   * @param bool $noFieldsEnabled
+   *
+   * @return Index
+   */
 	public function setNoFieldsEnabled( $noFieldsEnabled ) {
 		$this->noFieldsEnabled = $noFieldsEnabled;
 
@@ -192,11 +155,11 @@ class Index {
 		return ! is_string( $this->indexName ) || $this->indexName === '' ? self::class : $this->indexName;
 	}
 
-	/**
-	 * @param array $stopWords Array of custom stop words
-	 *
-	 * @return array
-	 */
+  /**
+   * @param array $stopWords Array of custom stop words
+   *
+   * @return Index
+   */
 	public function setStopWords( $stopWords = NULL ) {
 		$this->stopWords = $stopWords;
 
@@ -212,9 +175,11 @@ class Index {
 		return $this;
 	}
 
-	/**
-	 * @return int
-	 */
+  /**
+   * @param array $synonymList
+   *
+   * @return void
+   */
 	public function synonymAdd( $synonymList = array() ) {
 		if ( empty( $synonymList ) || ! is_array( $synonymList ) ) {
 			return;
@@ -258,52 +223,55 @@ class Index {
 		return $this->client->rawCommand( 'FT.ADD', $properties );
 	}
 
-	/**
-	 * @param string $name
-	 * @param float  $weight
-	 * @param bool   $sortable
-	 * @param bool   $noindex
-	 *
-	 * @return IndexInterface
-	 */
+  /**
+   * @param string $name
+   * @param float $weight
+   * @param bool $sortable
+   * @param bool $noindex
+   *
+   * @return Index
+   */
 	public function addTextField( $name, $weight = 1.0, $sortable = FALSE, $noindex = FALSE ) {
 		$this->$name = ( new TextField( $name ) )->setSortable( $sortable )->setNoindex( $noindex )->setWeight( $weight );
 
 		return $this;
 	}
 
-	/**
-	 * @param string $name
-	 * @param float  $weight
-	 * @param bool   $sortable
-	 * @param bool   $noindex
-	 *
-	 * @return IndexInterface
-	 */
+  /**
+   * @param string $name
+   * @param bool $sortable
+   * @param bool $noindex
+   *
+   * @param string $separator
+   *
+   * @return Index
+   */
 	public function addTagField( $name, $sortable = FALSE, $noindex = FALSE, $separator = ',' ) {
 		$this->$name = ( new TagField( $name ) )->setSortable( $sortable )->setNoindex( $noindex )->setSeparator( $separator );
 
 		return $this;
 	}
 
-	/**
-	 * @param string $name
-	 * @param bool   $sortable
-	 * @param bool   $noindex
-	 *
-	 * @return IndexInterface
-	 */
+  /**
+   * @param string $name
+   * @param bool $sortable
+   * @param bool $noindex
+   *
+   * @return Index
+   */
 	public function addNumericField( $name, $sortable = FALSE, $noindex = FALSE ) {
 		$this->$name = ( new NumericField( $name ) )->setSortable( $sortable )->setNoindex( $noindex );
 
 		return $this;
 	}
 
-	/**
-	 * @param string $name
-	 *
-	 * @return IndexInterface
-	 */
+  /**
+   * @param string $name
+   *
+   * @param bool $noindex
+   *
+   * @return Index
+   */
 	public function addGeoField( $name, $noindex = FALSE ) {
 		$this->$name = ( new GeoField( $name ) )->setNoindex( $noindex );
 
