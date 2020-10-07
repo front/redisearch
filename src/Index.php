@@ -51,8 +51,14 @@ class Index {
 	 *
 	 * @return
 	 */
-	public function drop() {
-		return $this->client->rawCommand( 'FT.DROP', array( $this->getIndexName() ) );
+	public function drop( $deleteHash = FALSE ) {
+	  $dropOptions = array(
+      $this->getIndexName()
+    );
+	  if ( $deleteHash ) {
+	    $dropOptions[] = 'DD';
+    }
+		return $this->client->rawCommand( 'FT.DROPINDEX', $dropOptions );
 	}
 
 	/**
