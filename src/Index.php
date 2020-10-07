@@ -40,6 +40,11 @@ class Index {
 	 */
 	private $stopWords = NULL;
 
+	/**
+	 * @var string
+	 */
+	private $on = 'hash';
+
 	public function __construct( $client ) {
 		$this->client = $client;
 	}
@@ -103,6 +108,18 @@ class Index {
 
 		return $this->client->rawCommand( 'FT.CREATE', array_merge( $properties, $fieldDefinitions ) );
 	}
+
+  /**
+   * The Redis structure which the index will be created based on
+   * Currently, only HASH supported, but other types will be supported in the future
+   *
+   * @param string $on
+   *
+   * @return mixed|string
+   */
+	public function on( $on = 'HASH' ) {
+	  return $this->on = $on;
+  }
 
 
 	/**
