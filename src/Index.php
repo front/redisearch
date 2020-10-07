@@ -45,6 +45,11 @@ class Index {
 	 */
 	private $on = 'hash';
 
+	/**
+	 * @var array|string
+	 */
+	private $prefix = '*';
+
 	public function __construct( $client ) {
 		$this->client = $client;
 	}
@@ -115,12 +120,27 @@ class Index {
    *
    * @param string $on
    *
-   * @return mixed|string
+   * @return Index
    */
 	public function on( $on = 'HASH' ) {
-	  return $this->on = $on;
+	  $this->on = $on;
+	  return $this;
   }
 
+  /**
+   * Tells the index which keys it should index.
+   * You can add several prefixes to index.
+   * Since the argument is optional, the default is * (all keys)
+   *
+   * @param array|string $prefix
+   *
+   * @return Index
+   */
+  public function setPrefix( $prefix = '*' ) {
+    $this->prefix = $prefix;
+
+    return $this;
+  }
 
 	/**
 	 * @return bool
@@ -189,9 +209,9 @@ class Index {
 		return $this;
 	}
 
-	/**
-	 * @return int
-	 */
+  /**
+   * @return Index
+   */
 	public function noStopWords() {
 		$this->stopWords = 0;
 
