@@ -6,7 +6,7 @@ require_once  __DIR__ . '/vendor/autoload.php';
 
 use FKRediSearch\Index;
 use FKRediSearch\Search;
-use FKRediSearch\Query;
+use FKRediSearch\Query\Query;
 use FKRediSearch\Document;
 use FKRediSearch\Fields;
 use FKRediSearch\Fields\TextField;

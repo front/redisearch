@@ -28,7 +28,7 @@ class PredisAdapter extends AbstractRedisRawClient {
     return $this;
   }
   
-  public function multi(bool $usePipeline = false) {
+  public function multi(bool $usePipeline = NULL) {
     return $this->redis->pipeline();
   }
   
