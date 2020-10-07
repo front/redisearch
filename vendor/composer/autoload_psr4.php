@@ -7,5 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Predis\\' => array($vendorDir . '/predis/predis/src'),
-    'FKRediSearch\\' => array($baseDir . '/lib'),
+    'FKRediSearch\\' => array($baseDir . '/src'),
 );
