@@ -2,6 +2,7 @@
 
 namespace FKRediSearch;
 
+use FKRediSearch\Document;
 use FKRediSearch\Fields\FieldInterface;
 use FKRediSearch\Fields\GeoField;
 use FKRediSearch\Fields\NumericField;
@@ -557,8 +558,28 @@ class Index {
     return $this;
   }
 
+  /**
+   * @return bool
+   */
   public function isSkipInitialScanSet() {
     return $this->skipInScan;
+  }
+
+  /**
+   * Get field from the index info.
+   * This is useful when we want to retrieve the score field from an existing index.
+   *
+   * @param string $field The field key you want to get
+   *
+   * @return false|mixed
+   */
+  public function getFieldFromInfo( string $field ) {
+    $indexInfo = $this->getInfo();
+    if ( empty( $indexInfo) || !is_array( $indexInfo ) ) {
+      return FALSE;
+    }
+
+    return $indexInfo['index_definition'][ $field ];
   }
 
   /**
@@ -602,11 +623,20 @@ class Index {
 	 *
 	 * @return object $this
 	 */
-	public function add( $document ) {
+	public function add( Document $document ) {
 		$properties = $document->getDefinition();
-		array_unshift( $properties, $this->getIndexName() );
 
-		return $this->client->rawCommand( 'FT.ADD', $properties );
+		array_unshift( $properties, $document->getId() );
+
+		if ( $document->getScore() !== NULL && $this->getFieldFromInfo('score_field') ) {
+		  $properties = array_merge( $properties, array( $this->getFieldFromInfo('score_field'), $document->getScore() ) );
+    }
+
+		if ( $document->getLanguage() !== NULL && $this->getFieldFromInfo('language_field') ) {
+		  $properties = array_merge( $properties, array( $this->getFieldFromInfo('language_field'), $document->getLanguage() ) );
+    }
+
+		return $this->client->rawCommand( 'HSET', $properties );
 	}
 
   /**
@@ -702,10 +732,45 @@ class Index {
 	 *
 	 * @param null $indexName
 	 *
-	 * @return mixed
+	 * @return array
 	 */
 	public function getInfo( $indexName = NULL ) {
-		return $this->client->rawCommand( 'FT.INFO', [ empty( $indexName ) ? $this->indexName : $indexName ] );
+    $indexInfo = $this->client->rawCommand( 'FT.INFO', array( empty( $indexName ) ? $this->indexName : $indexName ) );
+
+		if ( !empty( $indexInfo ) ) {
+      array_walk_recursive( $indexInfo, function(&$item, $key) {
+        $item = (string) $item;
+      } );
+    }
+
+		return $this->normalizeInfoArray( $indexInfo );
 	}
+
+  private function normalizeInfoArray( $redisArray ) {
+    $newArray = array();
+    for ( $i = 0; $i < count( $redisArray ); $i += 2 ) {
+      if ( $redisArray[$i] === 'fields' ) {
+        foreach ( $redisArray[ $i + 1 ] as $field ) {
+          $fieldName = $field[0];
+          array_shift( $field );
+          $newArray[ $redisArray[ $i ] ][ $fieldName ] = $this->normalizeInfoArray( $field );
+        }
+
+      } elseif ( $redisArray[$i] === 'prefixes' ) {
+        foreach ( $redisArray[$i + 1] as $field ) {
+          $newArray[ $redisArray[$i] ][] = $field;
+        }
+
+      } elseif ( (gettype( $redisArray[$i] ) === 'string' && gettype( $redisArray[$i + 1] ) === 'string' ) ||
+                 ( gettype( $redisArray[$i + 1] ) === 'array' && empty( $redisArray[$i + 1] ) )
+      ) {
+        $newArray[ $redisArray[$i] ] = $redisArray[$i + 1];
+
+      } elseif ( gettype( $redisArray[$i + 1] ) === 'array' && !empty( $redisArray[$i + 1] ) ) {
+        $newArray[ $redisArray[$i] ] = $this->normalizeInfoArray( $redisArray[$i + 1] );
+      }
+    }
+    return $newArray;
+  }
 
 }
