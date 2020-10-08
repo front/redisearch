@@ -2,10 +2,12 @@
 
 **This is a light weight, CMS/Framework agnostic client for RediSearch**
 
+#### For RediSearch version 1.0, please use [version 1.0.2](https://github.com/front/redisearch/releases/tag/1.0.2)
+ 
 ### How to use
 First, you will need to install and configure [Redis](https://redis.io/topics/quickstart) and [RediSearch](https://oss.redislabs.com/redisearch/Quick_Start/).
 
-Then add this package to your project via `composer require front/redisearch` or just downloading this repository.
+Then add this package to your project via `composer require front/redisearch`.
 
 For all kind of operations, first step is to connect to redis server:
 
@@ -31,15 +33,32 @@ Redisearch supports some field types:
 `dm:pt` - Double Metaphone for Portuguese
 `dm:es` - Double Metaphone for Spanish
 
-#### Create index
-To create index, first we need to specify `indexName`, then the we can pass some optional flags and at the end, schema (fields). Available commands are:
+#### Create an index
+To create index, first we need to specify `indexName`, then we can pass some optional flags and at the end, schema (fields). 
+
+Available commands are:
 
 ```php
 $index = new Index( $client ); // Initiate Index
-$index->setIndexName('test22'); // Set indexName
+$index->setIndexName('test'); // Set indexName
 ```
 
-Redisearch by defaut support basic english stop-words. There is two option, you can totally disable excluding stop-word or specify your own list of them:
+In the RediSearch version 2.0, the whole structure of the index have been changed. Unlike version 1.0 which used to store indexed documents into Redis HASHed, in version 2.0 the Redis HASHes are indexed automatically. This means:
+1. While creating an index, you need to tell RediSearch which HASH prefixes should be indexed
+2. The HASH key in which you want to index, you needs to have the same prefix specified for the index
+
+Also you need to tell RediSearch which Redis type should be indexed. For now, only HASH is supported, but other data types might be added in the future.
+```php
+$index->on('HASH');
+$index->setPrefix('doc:');
+``` 
+
+In the new version of RediSearch, indexes can be created temporarily for a specified period of inactivity. The internal idle timer is reset whenever the index is searched or added to. This is specially useful for example: order history of individual users in a commerce website.
+```php
+$index->setTemporary(3600); // The index will automatically be deleted after one hour. The underlying HASH values remain untouched. 
+```
+
+RediSearch by default supports basic english stop-words. There is two option, you can totally disable stop-word exclusion or specify your own list:
 ```php
 $index->setStopWords( 0 ); // This will disables excluding of stop-words
 // Or you can add your list of stop-words
@@ -49,8 +68,17 @@ $index->setStopWords( $stop_words );
 
 Some other flags are:
 ```php
-$index->setNoOffsetsEnabled( true ); // If set, we do not store term offsets for documents (saves memory, does not allow exact searches or highlighting).
-$index->setNoFieldsEnabled( true ) // If set, we do not store field bits for each term. Saves memory, does not allow filtering by specific fields.
+$index->setNoOffsetsEnabled( true ); // If set, term offsets won't be stored for documents (saves memory, does not allow exact searches or highlighting).
+$index->setNoFieldsEnabled( true ); // If set, field bits for each term won't be stored. This saves memory, does not allow filtering by specific fields.
+$index->setDefaultLang( 'english' ); // Set default language of the index. 
+$index->setLangField( 'language' ); // Set document field used to specify individual documents language.
+$index->setScore(1); // Set a default score for that specific index. 
+$index->setScoreField('scoreField'); // Set a field which specifies each individual documents score.
+$index->setPayloadField('payloadField'); // Document field that should be used as a binary safe payload string
+$index->setMaxFields(34); // Maximum allowed number of fields. This is to preserve memory use
+$index->setNoHighlight(); // This will deactivate highlighting feature. 
+$index->setNoFreqs(); // Prevents storing term frequencies. 
+$index->skipInitialScan(); // Cancels initial HASH scanning when index created. 
 ```
 
 And finally, we need to specify the schema (the fields, their types and flags):
@@ -89,19 +117,18 @@ $index->synonymAdd( $synonym );
 $document = new Document();
 $document->setScore(0.3); // The document's rank based on the user's ranking. This must be between 0.0 and 1.0. Default value is 1.0
 $document->setLanguage('english'); // This is usefull for stemming
-$document->setNoSave( true ); //  If set to true, we will not save the actual document in the database and only index it.
-$document->setPayload( true ); // Optionally set a binary safe payload string to the document, that can be evaluated at query time by a custom scoring function, or retrieved to the client.
+$document->setId('doc:123'); // This is the HASH key. RediSearch uses the prefix of document ID to index the document
 // And the fields 
 $document->setFields(
   array(
     'title'       => 'Document title like post title',
     'category'    => 'search, fuzzy, synonym, phonetic',
     'date'        => strtotime( '2019-01-14 01:12:00' ),
-    'location'    => new GeoLocation(-77.0366, 38.8977)),
+    'location'    => new GeoLocation(-77.0366, 38.8977),
   )
 );
 
-$index->add( $document ); // Add document to the index (in other term, index the document)
+$index->add( $document ); // Finally, add document to the index (in other term, index the document)
 ```
 
 #### Persistence
@@ -131,6 +158,7 @@ $results = $search
         ->geoFilter( $fieldName, $longitude, $latitude, $radius, $distanceUnit = 'km' )
         ->numericFilter( $fieldName, $min, $max = null )
         ->withScores() // If set, we also return the relative internal score of each document. this can be used to merge results from multiple instances
+        ->withSortKey() // Returns the value of the sorting key
         ->verbatim() // if set, we do not try to use stemming for query expansion but search the query terms verbatim.
         ->withPayloads() // If set, we retrieve optional document payloads (see FT.ADD). the payloads follow the document id, and if WITHSCORES was set, follow the scores
         ->noStopWords() //  If set, we do not filter stopwords from the query
@@ -152,9 +180,16 @@ $results->getCount(); // Returns search results numbers
 $results->getDocuments(); // Returns search results object or array
 ```
 
+#### Delete an index
+```php
+$index->drop($deleteHashes); // This method accepts one param, if it set, the underlying HASHes will be deleted as well.
+```
+
 **Notes**:
-* NUMBERIC, TAG and GEO fields only can be used as filter and matching not working on them. 
+* NUMBERIC, TAG and GEO fields only can be used as filter and matching does not work on them. 
 
 **Todos**:
 * Add support for suggestion (auto-complete).
-* Add comment to all methods.
+* Implement individual document deletion
+* Implement filter on index
+* Implement document updating  

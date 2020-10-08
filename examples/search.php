@@ -16,6 +16,7 @@ $results = $search
         // ->geoFilter( $fieldName, $longitude, $latitude, $radius, $distanceUnit = 'km' )
         // ->numericFilter( $fieldName, $min, $max = null )
         // ->withScores() // If set, we also return the relative internal score of each document. this can be used to merge results from multiple instances
+        // ->withSortKey() // Returns the value of the sorting key
         // ->verbatim() // if set, we do not try to use stemming for query expansion but search the query terms verbatim.
         // ->withPayloads() // If set, we retrieve optional document payloads (see FT.ADD). the payloads follow the document id, and if WITHSCORES was set, follow the scores
         // ->noStopWords() //  If set, we do not filter stopwords from the query
