@@ -104,9 +104,9 @@ class Index {
   /**
    * Index constructor.
    *
-   * @param Setup $client The redis client instance
+   * @param RedisRaw\PredisAdapter $client The redis client instance
    */
-	public function __construct( \FKRediSearch\Setup $client ) {
+	public function __construct( RedisRaw\PredisAdapter $client ) {
 		$this->client = $client;
 	}
 
