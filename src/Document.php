@@ -3,43 +3,44 @@
 namespace FKRediSearch;
 
 class Document {
-  protected $id;
-  protected $score = 1.0;
-  protected $noSave = false;
-  protected $replace = false;
-  protected $fields = array();
-  protected $payload;
-  protected $language;
 
-  public function __construct( $id = null ) {
+  /**
+   * @var mixed|string
+   */
+  protected $id;
+
+  /**
+   * @var float
+   */
+  protected $score = NULL;
+
+  /**
+   * @var bool
+   */
+  protected $replace = FALSE;
+
+  /**
+   * @var array
+   */
+  protected $fields = array();
+
+  /**
+   * @var string
+   */
+  protected $language = NULL;
+
+
+  public function __construct( int $id = null ) {
     $this->id = $id ?? uniqid(true);
   }
 
+  /**
+   * Get set fields as a one dimensional array
+   *
+   * @return array
+   */
   public function getDefinition() {
-    $properties = [
-      $this->getId(),
-      $this->getScore(),
-    ];
-
-    if ( $this->isNoSave() ) {
-      $properties[] = 'NOSAVE';
-    }
-
-    if ( $this->isReplace() ) {
-      $properties[] = 'REPLACE';
-    }
-
-    if ( !is_null( $this->getLanguage() ) ) {
-      $properties[] = 'LANGUAGE';
-      $properties[] = $this->getLanguage();
-    }
-
-    if ( !is_null( $this->getPayload() ) ) {
-      $properties[] = 'PAYLOAD';
-      $properties[] = $this->getPayload();
-    }
-
-    $properties[] = 'FIELDS';
+    $properties = array();
 
     foreach ( $this->getFields() as $name => $value) {
       if ( isset( $value ) ) {
@@ -51,29 +52,63 @@ class Document {
     return $properties;
   }
 
-  public function setFields( $fields = array() ) {
+  /**
+   * Setting associative array of field => values
+   *
+   * @param array $fields
+   *
+   * @return object Document
+   */
+  public function setFields( array $fields = array() ) {
     $this->fields = $fields;
     return $this;
   }
 
+  /**
+   * Get fields
+   *
+   * @return array
+   */
   public function getFields() {
     return $this->fields;
   }
 
+  /**
+   * Get document ID
+   * @return string
+   */
   public function getId()  {
     return $this->id;
   }
 
-  public function setId( $id ) {
+  /**
+   * Set document ID
+   * @param string $id
+   *
+   * @return object Document
+   */
+  public function setId( string $id ) {
     $this->id = $id;
     return $this;
   }
 
+  /**
+   * Get document score
+   *
+   * @return float|null
+   */
   public function getScore() {
     return $this->score;
   }
 
-  public function setScore( $score ) {
+  /**
+   * Set score for the document.
+   *
+   * @param float $score
+   *
+   * @return object Document
+   */
+  public function setScore( float $score ) {
     if ($score < 0.0 || $score > 1.0) {
       $score = 1.0;
     }
@@ -82,38 +117,31 @@ class Document {
     return $this;
   }
 
-  public function isNoSave() {
-    return $this->noSave;
-  }
-
-  public function setNoSave( $noSave ) {
-    $this->noSave = $noSave;
-    return $this;
-  }
-
   public function isReplace() {
     return $this->replace;
   }
 
-  public function setReplace( $replace ) {
+  public function setReplace( bool $replace ) {
     $this->replace = $replace;
     return $this;
   }
 
-  public function getPayload() {
-    return $this->payload;
-  }
-
-  public function setPayload( $payload ) {
-    $this->payload = $payload;
-    return $this;
-  }
-
+  /**
+   * Return document language if set specifically
+   *
+   * @return string|null
+   */
   public function getLanguage() {
     return $this->language;
   }
 
-  public function setLanguage( $language ) {
+  /**
+   * Return document specific language if set
+   * @param string|null $language
+   *
+   * @return object Document
+   */
+  public function setLanguage( string $language ) {
     $this->language = $language;
     return $this;
   }
