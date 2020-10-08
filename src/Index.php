@@ -2,7 +2,6 @@
 
 namespace FKRediSearch;
 
-use FKRediSearch\Document;
 use FKRediSearch\Fields\FieldInterface;
 use FKRediSearch\Fields\GeoField;
 use FKRediSearch\Fields\NumericField;
@@ -15,11 +14,6 @@ class Index {
 	 * @var object
 	 */
 	public $client;
-
-	/**
-	 * @var object
-	 */
-	private $index;
 
 	/**
 	 * @var string
@@ -110,20 +104,20 @@ class Index {
   /**
    * Index constructor.
    *
-   * @param object $client The redis client instance
+   * @param Setup $client The redis client instance
    */
-	public function __construct( $client ) {
+	public function __construct( \FKRediSearch\Setup $client ) {
 		$this->client = $client;
 	}
 
-	/**
-	 * Drop existing index.
-	 *
-	 * @param
-	 *
-	 * @return
-	 */
-	public function drop( $deleteHash = FALSE ) {
+  /**
+   * Drop existing index.
+   *
+   * @param bool $deleteHash
+   *
+   * @return bool
+   */
+	public function drop( bool $deleteHash = FALSE ) {
 	  $dropOptions = array(
       $this->getIndexName()
     );
@@ -229,7 +223,7 @@ class Index {
    *
    * @return object Index
    */
-	public function on( $on = 'HASH' ) {
+	public function on( string $on = 'HASH' ) {
 	  $this->on = $on;
 	  return $this;
   }
@@ -243,7 +237,7 @@ class Index {
    *
    * @return object Index
    */
-  public function setPrefix( $prefix = '*' ) {
+  public function setPrefix( string $prefix = '*' ) {
     $this->prefix = $prefix;
 
     return $this;
@@ -265,7 +259,7 @@ class Index {
    *
    * @return object Index
    */
-	public function setNoOffsetsEnabled( $noOffsetsEnabled ) {
+	public function setNoOffsetsEnabled( bool $noOffsetsEnabled ) {
 		$this->noOffsetsEnabled = $noOffsetsEnabled;
 
 		return $this;
@@ -291,7 +285,7 @@ class Index {
    *
    * @return object Index
    */
-	public function setNoFieldsEnabled( $noFieldsEnabled ) {
+	public function setNoFieldsEnabled( bool $noFieldsEnabled ) {
 		$this->noFieldsEnabled = $noFieldsEnabled;
 
 		return $this;
@@ -303,7 +297,7 @@ class Index {
 	 *
 	 * @return string
 	 */
-	public function setIndexName( $indexName ) {
+	public function setIndexName( string $indexName ) {
 		$this->indexName = $indexName;
 
 		return $this;
@@ -321,7 +315,7 @@ class Index {
    *
    * @return object Index
    */
-	public function setStopWords( $stopWords = NULL ) {
+	public function setStopWords( array $stopWords = NULL ) {
 		$this->stopWords = $stopWords;
 
 		return $this;
@@ -346,7 +340,7 @@ class Index {
    *
    * @return object Index
    */
-	public function setDefaultLang( $language ) {
+	public function setDefaultLang( string $language ) {
 	  $this->language = $language;
 	  return $this;
   }
@@ -362,7 +356,7 @@ class Index {
    *
    * @return object Index
    */
-  public function setLangField( $field ) {
+  public function setLangField( string $field ) {
 	  $this->langField = $field;
 	  return $this;
   }
@@ -389,7 +383,7 @@ class Index {
    *
    * @return object Index
    */
-  public function setScore( $score ) {
+  public function setScore( float $score ) {
     $this->score = $score;
     return $this;
   }
@@ -409,7 +403,7 @@ class Index {
    *
    * @return object Index
    */
-  public function setScoreField( $scoreField ) {
+  public function setScoreField( string $scoreField ) {
     $this->scoreField = $scoreField;
     return $this;
   }
@@ -436,7 +430,7 @@ class Index {
    *
    * @return object Index
    */
-  public function setPayloadField( $payloadField ) {
+  public function setPayloadField( string $payloadField ) {
     $this->payloadField = $payloadField;
     return $this;
   }
@@ -460,11 +454,11 @@ class Index {
    * This option forces RediSearch to encode indexes as if there were more than 32 text fields,
    * which allows you to add additional fields (beyond 32) using FT.ALTER .
    *
-   * @param integer $maxFields
+   * @param int $maxFields
    *
    * @return object Index
    */
-  public function setMaxFields( $maxFields ) {
+  public function setMaxFields( int $maxFields ) {
     $this->maxFields = $maxFields;
     return $this;
   }
@@ -481,11 +475,12 @@ class Index {
   }
 
   /**
-   * @param $expires
+   * Marks index as temporary and sets expiration time in seconds
+   * @param int $expires Index expiration time in seconds
    *
-   * @return $this
+   * @return object Index
    */
-  public function setTemporary( $expires ) {
+  public function setTemporary( int $expires ) {
     $this->temporary = TRUE;
     $this->expires = $expires;
     return $this;
@@ -514,7 +509,7 @@ class Index {
    *
    * @return object Index
    */
-  public function setNoHighlight( $noHighlight ) {
+  public function setNoHighlight( bool $noHighlight ) {
     $this->noHighlight = $noHighlight;
     return $this;
   }
@@ -534,7 +529,7 @@ class Index {
    *
    * @return object Index
    */
-  public function setNoFreqs( $noFreqs ) {
+  public function setNoFreqs( bool $noFreqs ) {
     $this->nofreqs = $noFreqs;
     return $this;
   }
@@ -553,7 +548,7 @@ class Index {
    *
    * @return object Index
    */
-  public function skipInitialScan( $noInitialScan ) {
+  public function skipInitialScan( bool $noInitialScan ) {
     $this->skipInScan = $noInitialScan;
     return $this;
   }
@@ -587,7 +582,7 @@ class Index {
    *
    * @return void
    */
-	public function synonymAdd( $synonymList = array() ) {
+	public function synonymAdd( array $synonymList = array() ) {
 		if ( empty( $synonymList ) || ! is_array( $synonymList ) ) {
 			return;
 		}
@@ -614,16 +609,16 @@ class Index {
 		return $fields;
 	}
 
-	/**
-	 * Add documents to the index.
-	 *
-	 * @since    0.1.0
-	 *
-	 * @param
-	 *
-	 * @return object $this
-	 */
-	public function add( Document $document ) {
+  /**
+   * Add documents to the index.
+   *
+   * @param Document $document
+   *
+   * @return object $this
+   * @since    0.1.0
+   *
+   */
+	public function add( \FKRediSearch\Document $document ) {
 		$properties = $document->getDefinition();
 
 		array_unshift( $properties, $document->getId() );
@@ -647,7 +642,7 @@ class Index {
    *
    * @return object Index
    */
-	public function addTextField( $name, $weight = 1.0, $sortable = FALSE, $noindex = FALSE ) {
+	public function addTextField( string $name, float $weight = 1.0, bool $sortable = FALSE, bool $noindex = FALSE ) {
 		$this->$name = ( new TextField( $name ) )->setSortable( $sortable )->setNoindex( $noindex )->setWeight( $weight );
 
 		return $this;
@@ -662,7 +657,7 @@ class Index {
    *
    * @return object Index
    */
-	public function addTagField( $name, $sortable = FALSE, $noindex = FALSE, $separator = ',' ) {
+	public function addTagField( string $name, bool $sortable = FALSE, bool $noindex = FALSE, string $separator = ',' ) {
 		$this->$name = ( new TagField( $name ) )->setSortable( $sortable )->setNoindex( $noindex )->setSeparator( $separator );
 
 		return $this;
@@ -675,7 +670,7 @@ class Index {
    *
    * @return object Index
    */
-	public function addNumericField( $name, $sortable = FALSE, $noindex = FALSE ) {
+	public function addNumericField( string $name, bool $sortable = FALSE, bool $noindex = FALSE ) {
 		$this->$name = ( new NumericField( $name ) )->setSortable( $sortable )->setNoindex( $noindex );
 
 		return $this;
@@ -688,22 +683,22 @@ class Index {
    *
    * @return object Index
    */
-	public function addGeoField( $name, $noindex = FALSE ) {
+	public function addGeoField( string $name, bool $noindex = FALSE ) {
 		$this->$name = ( new GeoField( $name ) )->setNoindex( $noindex );
 
 		return $this;
 	}
 
-	/**
-	 * Delete post from index.
-	 *
-	 * @since    0.1.0
-	 *
-	 * @param
-	 *
-	 * @return object $this
-	 */
-	public function delete( $id = NULL ) {
+  /**
+   * Delete post from index.
+   *
+   * @param int|null $id
+   *
+   * @return object $this
+   * @since    0.1.0
+   *
+   */
+	public function delete( int $id = NULL ) {
 		if ( $id === NULL ) {
 			return;
 		}
@@ -714,27 +709,24 @@ class Index {
 		return $this;
 	}
 
-	/**
-	 * Write entire redisearch index to the disk to persist it.
-	 *
-	 * @since    0.1.0
-	 *
-	 * @param
-	 *
-	 * @return
-	 */
+  /**
+   * Write entire redisearch index to the disk to persist it.
+   *
+   * @return object Index
+   * @since    0.1.0
+   */
 	public function writeToDisk() {
 		return $this->client->rawCommand( 'SAVE', [] );
 	}
 
-	/**
-	 * Returns information and statistics on the index.
-	 *
-	 * @param null $indexName
-	 *
-	 * @return array
-	 */
-	public function getInfo( $indexName = NULL ) {
+  /**
+   * Returns information and statistics on the index.
+   *
+   * @param string|null $indexName
+   *
+   * @return array
+   */
+	public function getInfo( string $indexName = NULL ) {
     $indexInfo = $this->client->rawCommand( 'FT.INFO', array( empty( $indexName ) ? $this->indexName : $indexName ) );
 
 		if ( !empty( $indexInfo ) ) {
@@ -746,7 +738,12 @@ class Index {
 		return $this->normalizeInfoArray( $indexInfo );
 	}
 
-  private function normalizeInfoArray( $redisArray ) {
+  /**
+   * @param array $redisArray
+   *
+   * @return array
+   */
+  private function normalizeInfoArray( array $redisArray ) {
     $newArray = array();
     for ( $i = 0; $i < count( $redisArray ); $i += 2 ) {
       if ( $redisArray[$i] === 'fields' ) {
