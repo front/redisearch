@@ -729,11 +729,12 @@ class Index {
 	public function getInfo( string $indexName = NULL ) {
     $indexInfo = $this->client->rawCommand( 'FT.INFO', array( empty( $indexName ) ? $this->indexName : $indexName ) );
 
-		if ( !empty( $indexInfo ) ) {
-      array_walk_recursive( $indexInfo, function(&$item, $key) {
-        $item = (string) $item;
-      } );
+		if ( empty( $indexInfo ) || !is_array( $indexInfo ) ) {
+		  return NULL;
     }
+    array_walk_recursive( $indexInfo, function(&$item, $key) {
+      $item = (string) $item;
+    } );
 
 		return $this->normalizeInfoArray( $indexInfo );
 	}
