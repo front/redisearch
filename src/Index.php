@@ -618,7 +618,7 @@ class Index {
    * @since    0.1.0
    *
    */
-	public function add( \FKRediSearch\Document $document ) {
+	public function add( Document $document ) {
 		$properties = $document->getDefinition();
 
 		array_unshift( $properties, $document->getId() );
@@ -692,15 +692,14 @@ class Index {
   /**
    * Delete post from index.
    *
-   * @param int|null $id
+   * @param string|null $id
    *
    * @return object $this
    * @since    0.1.0
-   *
    */
-	public function delete( int $id = NULL ) {
+	public function delete( string $id = NULL ) {
 		if ( $id === NULL ) {
-			return;
+			return NULL;
 		}
 
 		$command = array( $this->indexName, $id, 'DD' );

@@ -30,7 +30,7 @@ class Document {
   protected $language = NULL;
 
 
-  public function __construct( int $id = null ) {
+  public function __construct( string $id = null ) {
     $this->id = $id ?? uniqid(true);
   }
 
