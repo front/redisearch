@@ -139,7 +139,7 @@ class Index {
 
 		if ( is_array( $this->getPrefix() ) ) {
 		  $prefixCount = count( $this->getPrefix() );
-		  $properties = array_merge( $properties, array('PREFIX', $prefixCount, $this->getPrefix()) );
+      $properties = array_merge( $properties, array_merge( array('PREFIX', $prefixCount), $this->getPrefix()) );
     } else {
 		  $properties = array_merge( $properties, array('PREFIX', 1, $this->getPrefix()) );
     }
@@ -237,7 +237,7 @@ class Index {
    *
    * @return object Index
    */
-  public function setPrefix( string $prefix = '*' ) {
+  public function setPrefix( $prefix = '*' ) {
     $this->prefix = $prefix;
 
     return $this;
