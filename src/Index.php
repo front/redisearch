@@ -587,12 +587,20 @@ class Index {
 			return;
 		}
 
-		foreach ( $synonymList as $synonym ) {
+		foreach ( $synonymList as $key => $synonym ) {
 			$synonymGroup   = array_map( 'trim', $synonym );
-			$synonymCommand = array_merge( array( $this->getIndexName() ), $synonymGroup );
-
-			$this->client->rawCommand( 'FT.SYNADD', $synonymCommand );
+			$synonymCommand = array_merge( array( $this->getIndexName() ), array( "synonymGroup:$key" ), $synonymGroup );
+			$this->client->rawCommand( 'FT.SYNUPDATE', $synonymCommand );
 		}
+	}
+
+  /**
+   * @param
+   *
+   * @return void
+   */
+	public function synonymDump() {
+		$this->client->rawCommand( 'FT.SYNDUMP', array( $this->getIndexName() ) );
 	}
 
 	/**
@@ -702,8 +710,8 @@ class Index {
 			return NULL;
 		}
 
-		$command = array( $this->indexName, $id, 'DD' );
-		$this->client->rawCommand( 'FT.DEL', $command );
+		$command = array( $this->indexName, $id );
+		$this->client->rawCommand( 'DEL', $command );
 
 		return $this;
 	}
