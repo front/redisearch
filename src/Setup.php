@@ -14,11 +14,11 @@ class Setup {
    * @param null   $password
    * @param int    $database
    *
-   * @return \FKRediSearch\RedisRaw\RedisRawClientInterface
+   * @return PredisAdapter
    */
-  public static function connect( $server = '127.0.0.1', $port = 6379, $password = null, $database = 0 ) {
+  public static function connect( $server = '127.0.0.1', $port = 6379, $password = null, $database = 0, $scheme = 'tcp' ) {
     // Connect to server
-    $client = ( new PredisAdapter() )->connect( $server, $port, $database, $password );
+    $client = ( new PredisAdapter() )->connect( $server, $port, $database, $password, $database, $scheme );
     return $client;
   }
   
