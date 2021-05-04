@@ -18,7 +18,7 @@ class Setup {
    */
   public static function connect( $server = '127.0.0.1', $port = 6379, $password = null, $database = 0, $scheme = 'tcp' ) {
     // Connect to server
-    $client = ( new PredisAdapter() )->connect( $server, $port, $database, $password, $database, $scheme );
+    $client = ( new PredisAdapter() )->connect( $server, $port, $database, $password, $scheme );
     return $client;
   }
   

@@ -22,15 +22,21 @@ class PredisAdapter extends AbstractRedisRawClient {
       'password'  => $password
     );
     if ( $scheme === 'tcp' ) {
-      $clientArgs = array(
+      $clientArgs = array_merge(
+        $clientArgs,
+        array(
         'scheme'    => 'tcp',
         'port'      => $port,
         'host'      => $hostname
+        )
       );
     } else if ( $scheme === 'unix' ) {
-      $clientArgs = array(
+      $clientArgs = array_merge(
+        $clientArgs,
+        array(
         'scheme'    => 'unix',
-        'path'      => $host
+        'path'      => $hostname
+        )
       );
     }
     $this->redis = new Client( $clientArgs );
