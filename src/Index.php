@@ -754,6 +754,8 @@ class Index {
   private function normalizeInfoArray( array $redisArray ) {
     $newArray = array();
     for ( $i = 0; $i < count( $redisArray ); $i += 2 ) {
+      $tmp = &$lookup_table[$key];
+      if(isset($tmp)){
       if ( $redisArray[$i] === 'fields' ) {
         foreach ( $redisArray[ $i + 1 ] as $field ) {
           $fieldName = $field[0];
@@ -774,6 +776,7 @@ class Index {
       } elseif ( gettype( $redisArray[$i + 1] ) === 'array' && !empty( $redisArray[$i + 1] ) ) {
         $newArray[ $redisArray[$i] ] = $this->normalizeInfoArray( $redisArray[$i + 1] );
       }
+    }
     }
     return $newArray;
   }
