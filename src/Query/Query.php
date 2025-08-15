@@ -463,7 +463,7 @@ class Query {
         array_merge(
             trim($queryWithFilters) === '' ? array( $this->indexName ) : array( $this->indexName, $queryWithFilters ),
             explode( ' ', $this->limit ),
-            explode( ' ', $this->slop ),
+            explode( ' ', $this->slop ?? '' ),
             array( $this->verbatim, $this->withScores, $this->withSortKey, $this->withPayloads, $this->noStopWords, $this->noContent),
             explode( ' ', $this->inFields),
             explode( ' ', $this->inKeys ),
